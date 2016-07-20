@@ -6,7 +6,6 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.IntDef;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
@@ -74,11 +73,6 @@ public class TagView extends TextView {
         mTagText = getText();
         // 设置字体占中
         setGravity(Gravity.CENTER);
-//        setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
-//        setTextColor(mTextColor);
-//        // 设置字体大小，如果转化为像素单位则要使用setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize)
-//        setTextSize(mTextSize);
-//        setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -144,6 +138,7 @@ public class TagView extends TextView {
         // 获取可用宽度
         int availableWidth = ((TagGroup) getParent()).getAvailableWidth();
         mPaint.setTextSize(getTextSize());
+
         // 计算字符串长度
         float textWidth = mPaint.measureText(String.valueOf(mTagText));
         // 如果可用宽度不够用，则做裁剪处理，末尾不3个.
@@ -237,7 +232,6 @@ public class TagView extends TextView {
     }
 
     public void setTagClickListener(OnTagClickListener tagClickListener) {
-        Log.w("TagView", "setTagClickListener");
         mTagClickListener = tagClickListener;
     }
 

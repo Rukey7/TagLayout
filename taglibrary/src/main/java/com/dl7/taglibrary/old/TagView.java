@@ -16,6 +16,7 @@ import com.dl7.taglibrary.utils.MeasureUtils;
  * Created by long on 2016/7/20.
  * TagView
  */
+@Deprecated
 public class TagView extends TextView {
 
     private Paint mPaint;

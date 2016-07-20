@@ -16,6 +16,7 @@ import com.dl7.taglibrary.utils.MeasureUtils;
  * Created by long on 2016/7/20.
  * TagGroup
  */
+@Deprecated
 public class TagGroup extends ViewGroup {
 
     private Paint mPaint;
@@ -69,10 +70,10 @@ public class TagGroup extends ViewGroup {
         int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
         int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
-        // 测量子视图
-        measureChildren(widthMeasureSpec, heightMeasureSpec);
         // 计算可用宽度，为测量宽度减去左右padding值
         int availableWidth = widthSpecSize - getPaddingLeft() - getPaddingRight();
+        // 测量子视图
+        measureChildren(widthMeasureSpec, heightMeasureSpec);
         int childCount = getChildCount();
         int tmpWidth = 0;
         int measureHeight = 0;
@@ -150,7 +151,7 @@ public class TagGroup extends ViewGroup {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        mRect.set(0, 0, w, h);
+        mRect.set(mBorderWidth, mBorderWidth, w - mBorderWidth, h - mBorderWidth);
     }
 
     @Override
@@ -176,5 +177,21 @@ public class TagGroup extends ViewGroup {
      */
     public void addTag(String text) {
         addView(new TagView(getContext(), text));
+    }
+
+    public void addTags(String... textList) {
+        for (String text : textList) {
+            addTag(text);
+        }
+    }
+
+    public void cleanTags() {
+        removeAllViews();
+        postInvalidate();
+    }
+
+    public void setTags(String... textList) {
+        cleanTags();
+        addTags(textList);
     }
 }
