@@ -9,6 +9,7 @@ import android.util.TypedValue;
 public class MeasureUtils {
 
     private MeasureUtils() {
+        throw new AssertionError();
     }
 
 

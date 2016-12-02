@@ -2,11 +2,14 @@ package com.dl7.taglibrary;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.IntDef;
+import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -26,6 +29,8 @@ public class TagView extends TextView {
     public final static int MODE_ROUND_RECT = 1;
     public final static int MODE_ARC = 2;
     public final static int MODE_RECT = 3;
+    // 无效数值
+    public final static int INVALID_VALUE = -1;
 
     private Paint mPaint;
     // 背景色
@@ -50,6 +55,12 @@ public class TagView extends TextView {
     private OnTagClickListener mTagClickListener;
     // 显示模式
     private int mTagMode = MODE_ROUND_RECT;
+    // 标签是否被按住
+    private boolean mIsTagPress = false;
+    // 宽度固定
+    private int mFitWidth = INVALID_VALUE;
+    // 是否使能按压反馈
+    private boolean mIsPressFeedback = false;
 
 
     public TagView(Context context, String text) {
@@ -65,6 +76,7 @@ public class TagView extends TextView {
 
     /**
      * 初始化
+     *
      * @param context
      */
     private void _init(Context context) {
@@ -95,7 +107,17 @@ public class TagView extends TextView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int fitTagNum = ((TagGroup) getParent()).getFitTagNum();
+        if (fitTagNum == INVALID_VALUE) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        } else {
+            int availableWidth = ((TagGroup) getParent()).getAvailableWidth();
+            int horizontalInterval = ((TagGroup) getParent()).getHorizontalInterval();
+            int width = (availableWidth - (fitTagNum - 1) * horizontalInterval) / fitTagNum;
+            int fitWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+            super.onMeasure(fitWidthSpec, heightMeasureSpec);
+            mFitWidth = width;
+        }
         _adjustText();
     }
 
@@ -108,21 +130,36 @@ public class TagView extends TextView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // 绘制背景
-        mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(mBgColor);
         float radius = mRadius;
         if (mTagMode == MODE_ARC) {
             radius = mRect.height() / 2;
         } else if (mTagMode == MODE_RECT) {
             radius = 0;
         }
-        canvas.drawRoundRect(mRect, radius, radius, mPaint);
-        // 绘制边框
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(mBorderWidth);
-        mPaint.setColor(mBorderColor);
-        canvas.drawRoundRect(mRect, radius, radius, mPaint);
+        // 是否进行按压反馈处理
+        if (mIsPressFeedback) {
+            // 按压反馈只会使用 mBgColor，且字体颜色在白色和 mBgColor 色直接变换
+            mPaint.setColor(mBgColor);
+            if (mIsTagPress) {
+                mPaint.setStyle(Paint.Style.FILL);
+                setTextColor(Color.WHITE);
+            } else {
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(mBorderWidth);
+                setTextColor(mBgColor);
+            }
+            canvas.drawRoundRect(mRect, radius, radius, mPaint);
+        } else {
+            // 绘制背景
+            mPaint.setStyle(Paint.Style.FILL);
+            mPaint.setColor(mBgColor);
+            canvas.drawRoundRect(mRect, radius, radius, mPaint);
+            // 绘制边框
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStrokeWidth(mBorderWidth);
+            mPaint.setColor(mBorderColor);
+            canvas.drawRoundRect(mRect, radius, radius, mPaint);
+        }
 
         super.onDraw(canvas);
     }
@@ -135,8 +172,13 @@ public class TagView extends TextView {
             return;
         }
         mIsAdjusted = true;
-        // 获取可用宽度
-        int availableWidth = ((TagGroup) getParent()).getAvailableWidth();
+        // 获取最大可用宽度
+        int availableWidth;
+        if (mFitWidth == INVALID_VALUE) {
+            availableWidth = ((TagGroup) getParent()).getAvailableWidth();
+        } else {
+            availableWidth = mFitWidth;
+        }
         mPaint.setTextSize(getTextSize());
 
         // 计算字符串长度
@@ -164,7 +206,7 @@ public class TagView extends TextView {
         }
     }
 
-    /******************************************************************/
+    /********************************* 开放接口 *********************************/
 
     public int getBgColor() {
         return mBgColor;
@@ -224,8 +266,17 @@ public class TagView extends TextView {
         mTagText = tagText;
     }
 
+    public boolean isPressFeedback() {
+        return mIsPressFeedback;
+    }
 
-    /*********************************点击监听*********************************/
+    public void setPressFeedback(boolean pressFeedback) {
+        mIsPressFeedback = pressFeedback;
+    }
+
+    /*********************************
+     * 点击监听
+     *********************************/
 
     public OnTagClickListener getTagClickListener() {
         return mTagClickListener;
@@ -235,16 +286,50 @@ public class TagView extends TextView {
         mTagClickListener = tagClickListener;
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!mIsPressFeedback) {
+            return super.onTouchEvent(event);
+        }
+        switch (MotionEventCompat.getActionMasked(event)) {
+            case MotionEvent.ACTION_DOWN:
+                mIsTagPress = true;
+                postInvalidate();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (mIsTagPress && !_isViewUnder(event.getX(), event.getY())) {
+                    mIsTagPress = false;
+                    postInvalidate();
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                if (mIsTagPress) {
+                    mIsTagPress = false;
+                    postInvalidate();
+                }
+                break;
+        }
+        return super.onTouchEvent(event);
+    }
+
+    private boolean _isViewUnder(float x, float y) {
+        return x >= 0 && x < getWidth() &&
+                y >= 0 && y < getHeight();
+    }
+
     /**
      * 点击监听器
      */
-    public interface OnTagClickListener{
+    public interface OnTagClickListener {
         void onTagClick(String text);
+
         void onTagLongClick(String text);
     }
 
 
-    /*********************************显示模式*********************************/
+    /*********************************
+     * 显示模式
+     *********************************/
 
     public int getTagMode() {
         return mTagMode;
@@ -257,5 +342,6 @@ public class TagView extends TextView {
     @IntDef({MODE_ROUND_RECT, MODE_ARC, MODE_RECT})
     @Retention(RetentionPolicy.SOURCE)
     @Target(ElementType.PARAMETER)
-    public @interface TagMode {}
+    public @interface TagMode {
+    }
 }

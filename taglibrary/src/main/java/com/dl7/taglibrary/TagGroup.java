@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -52,6 +53,8 @@ public class TagGroup extends ViewGroup {
     private List<TagView> mTagViews = new ArrayList<>();
     // 显示模式
     private int mTagMode = TagView.MODE_ROUND_RECT;
+    private int mFitTagNum = TagView.INVALID_VALUE;
+    private boolean mIsPressFeedback = false;
 
 
     public TagGroup(Context context) {
@@ -100,6 +103,7 @@ public class TagGroup extends ViewGroup {
         int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
         // 计算可用宽度，为测量宽度减去左右padding值，这个放在measureChildren前面，在子视图中会用到这个参数
         mAvailableWidth = widthSpecSize - getPaddingLeft() - getPaddingRight();
+        Log.e("TagGroup", "onMeasure " + mAvailableWidth);
         // 测量子视图
         measureChildren(widthMeasureSpec, heightMeasureSpec);
         int childCount = getChildCount();
@@ -163,7 +167,7 @@ public class TagGroup extends ViewGroup {
             int width = child.getMeasuredWidth();
             int height = child.getMeasuredHeight();
             // 超过一行做换行操作
-            if (width + curLeft > mAvailableWidth) {
+            if (width + curLeft > mAvailableWidth + getPaddingLeft()) {
                 curLeft = getPaddingLeft();
                 // 计算top坐标，要加上垂直间隙
                 curTop += maxHeight + mVerticalInterval;
@@ -254,6 +258,14 @@ public class TagGroup extends ViewGroup {
         mAvailableWidth = availableWidth;
     }
 
+    public int getFitTagNum() {
+        return mFitTagNum;
+    }
+
+    public void setFitTagNum(int fitTagNum) {
+        mFitTagNum = fitTagNum;
+    }
+
     /*********************************设置TagView*********************************/
 
     private TagView _initTagView(String text) {
@@ -266,6 +278,7 @@ public class TagGroup extends ViewGroup {
         tagView.setTextSize(mTagTextSize);
         tagView.setHorizontalPadding(mTagHorizontalPadding);
         tagView.setVerticalPadding(mTagVerticalPadding);
+        tagView.setPressFeedback(mIsPressFeedback);
         tagView.setTagClickListener(mOnTagClickListener);
         if (mOnTagClickListener == null) {
             mTagViews.add(tagView);
@@ -336,6 +349,14 @@ public class TagGroup extends ViewGroup {
 
     public void setTagVerticalPadding(int tagVerticalPadding) {
         mTagVerticalPadding = tagVerticalPadding;
+    }
+
+    public boolean isPressFeedback() {
+        return mIsPressFeedback;
+    }
+
+    public void setPressFeedback(boolean pressFeedback) {
+        mIsPressFeedback = pressFeedback;
     }
 
     public TagView.OnTagClickListener getOnTagClickListener() {

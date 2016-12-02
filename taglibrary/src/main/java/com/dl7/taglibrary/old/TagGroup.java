@@ -11,6 +11,9 @@ import android.view.ViewGroup;
 
 import com.dl7.taglibrary.utils.MeasureUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by long on 2016/7/20.
@@ -34,6 +37,22 @@ public class TagGroup extends ViewGroup {
     private int mHorizontalInterval;
     // 边框矩形
     private RectF mRect;
+    // 可用的最大宽度
+    private int mAvailableWidth;
+
+    private int mTagBgColor;
+    private int mTagBorderColor;
+    private int mTagTextColor;
+    private float mTagBorderWidth;
+    private float mTagTextSize;
+    private float mTagRadius;
+    private int mTagHorizontalPadding;
+    private int mTagVerticalPadding;
+    private TagView.OnTagClickListener mOnTagClickListener;
+    // 这个用来保存设置监听器之前的TagView
+    private List<TagView> mTagViews = new ArrayList<>();
+    // 显示模式
+    private int mTagMode = TagView.MODE_ROUND_RECT;
 
 
     public TagGroup(Context context) {
@@ -53,7 +72,7 @@ public class TagGroup extends ViewGroup {
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mBgColor = Color.parseColor("#11FF0000");
         mBorderColor = Color.parseColor("#22FF0000");
-        mBorderWidth = MeasureUtils.dp2px(context, 1f);
+        mBorderWidth = MeasureUtils.dp2px(context, 0.5f);
         mRadius = MeasureUtils.dp2px(context, 5f);
         int defaultInterval = (int) MeasureUtils.dp2px(context, 5f);
         mHorizontalInterval = defaultInterval;
@@ -62,6 +81,16 @@ public class TagGroup extends ViewGroup {
         // 如果想要自己绘制内容，则必须设置这个标志位为false，否则onDraw()方法不会调用
         setWillNotDraw(false);
         setPadding(defaultInterval, defaultInterval, defaultInterval, defaultInterval);
+
+        // 初始化TagView
+        mTagBgColor = Color.parseColor("#33F44336");
+        mTagBorderColor = Color.parseColor("#88F44336");
+        mTagTextColor = Color.parseColor("#FF666666");
+        mTagBorderWidth = MeasureUtils.dp2px(context, 0.5f);
+        mTagTextSize = 13.0f;
+        mTagRadius = MeasureUtils.dp2px(context, 5f);
+        mTagHorizontalPadding = (int) MeasureUtils.dp2px(context, 5);
+        mTagVerticalPadding = (int) MeasureUtils.dp2px(context, 5);
     }
 
     @Override
@@ -70,8 +99,8 @@ public class TagGroup extends ViewGroup {
         int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
         int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
-        // 计算可用宽度，为测量宽度减去左右padding值
-        int availableWidth = widthSpecSize - getPaddingLeft() - getPaddingRight();
+        // 计算可用宽度，为测量宽度减去左右padding值，这个放在measureChildren前面，在子视图中会用到这个参数
+        mAvailableWidth = widthSpecSize - getPaddingLeft() - getPaddingRight();
         // 测量子视图
         measureChildren(widthMeasureSpec, heightMeasureSpec);
         int childCount = getChildCount();
@@ -89,7 +118,7 @@ public class TagGroup extends ViewGroup {
             // 统计该行TagView的总宽度
             tmpWidth += child.getMeasuredWidth() + mHorizontalInterval;
             // 如果超过可用宽度则换行
-            if (tmpWidth - mHorizontalInterval > availableWidth) {
+            if (tmpWidth - mHorizontalInterval > mAvailableWidth) {
                 // 统计TagGroup的测量高度，要加上垂直间隙
                 measureHeight += maxLineHeight + mVerticalInterval;
                 // 重新赋值
@@ -117,7 +146,7 @@ public class TagGroup extends ViewGroup {
             return;
         }
 
-        int availableWidth = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
+        mAvailableWidth = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
         // 当前布局使用的top坐标
         int curTop = getPaddingTop();
         // 当前布局使用的left坐标
@@ -135,7 +164,7 @@ public class TagGroup extends ViewGroup {
             int width = child.getMeasuredWidth();
             int height = child.getMeasuredHeight();
             // 超过一行做换行操作
-            if (width + curLeft > availableWidth) {
+            if (width + curLeft > mAvailableWidth) {
                 curLeft = getPaddingLeft();
                 // 计算top坐标，要加上垂直间隙
                 curTop += maxHeight + mVerticalInterval;
@@ -168,6 +197,163 @@ public class TagGroup extends ViewGroup {
         canvas.drawRoundRect(mRect, mRadius, mRadius, mPaint);
     }
 
+    /*********************************设置TagGroup*********************************/
+
+    public int getBgColor() {
+        return mBgColor;
+    }
+
+    public void setBgColor(int bgColor) {
+        mBgColor = bgColor;
+    }
+
+    public int getBorderColor() {
+        return mBorderColor;
+    }
+
+    public void setBorderColor(int borderColor) {
+        mBorderColor = borderColor;
+    }
+
+    public float getBorderWidth() {
+        return mBorderWidth;
+    }
+
+    public void setBorderWidth(float borderWidth) {
+        mBorderWidth = MeasureUtils.dp2px(getContext(), borderWidth);
+    }
+
+    public float getRadius() {
+        return mRadius;
+    }
+
+    public void setRadius(float radius) {
+        mRadius = radius;
+    }
+
+    public int getVerticalInterval() {
+        return mVerticalInterval;
+    }
+
+    public void setVerticalInterval(int verticalInterval) {
+        mVerticalInterval = verticalInterval;
+    }
+
+    public int getHorizontalInterval() {
+        return mHorizontalInterval;
+    }
+
+    public void setHorizontalInterval(int horizontalInterval) {
+        mHorizontalInterval = horizontalInterval;
+    }
+
+    public int getAvailableWidth() {
+        return mAvailableWidth;
+    }
+
+    public void setAvailableWidth(int availableWidth) {
+        mAvailableWidth = availableWidth;
+    }
+
+    /*********************************设置TagView*********************************/
+
+    private TagView _initTagView(String text) {
+        TagView tagView = new TagView(getContext(), text);
+        tagView.setBgColor(mTagBgColor);
+        tagView.setBorderColor(mTagBorderColor);
+        tagView.setTextColor(mTagTextColor);
+        tagView.setBorderWidth(mTagBorderWidth);
+        tagView.setRadius(mTagRadius);
+        tagView.setTextSize(mTagTextSize);
+        tagView.setHorizontalPadding(mTagHorizontalPadding);
+        tagView.setVerticalPadding(mTagVerticalPadding);
+        tagView.setTagClickListener(mOnTagClickListener);
+        if (mOnTagClickListener == null) {
+            mTagViews.add(tagView);
+        }
+        tagView.setTagMode(mTagMode);
+        return tagView;
+    }
+
+    public int getTagBgColor() {
+        return mTagBgColor;
+    }
+
+    public void setTagBgColor(int tagBgColor) {
+        mTagBgColor = tagBgColor;
+    }
+
+    public int getTagBorderColor() {
+        return mTagBorderColor;
+    }
+
+    public void setTagBorderColor(int tagBorderColor) {
+        mTagBorderColor = tagBorderColor;
+    }
+
+    public int getTagTextColor() {
+        return mTagTextColor;
+    }
+
+    public void setTagTextColor(int tagTextColor) {
+        mTagTextColor = tagTextColor;
+    }
+
+    public float getTagBorderWidth() {
+        return mTagBorderWidth;
+    }
+
+    public void setTagBorderWidth(float tagBorderWidth) {
+        mTagBorderWidth = MeasureUtils.dp2px(getContext(), tagBorderWidth);
+    }
+
+    public float getTagTextSize() {
+        return mTagTextSize;
+    }
+
+    public void setTagTextSize(float tagTextSize) {
+        mTagTextSize = tagTextSize;
+    }
+
+    public float getTagRadius() {
+        return mTagRadius;
+    }
+
+    public void setTagRadius(float tagRadius) {
+        mTagRadius = tagRadius;
+    }
+
+    public int getTagHorizontalPadding() {
+        return mTagHorizontalPadding;
+    }
+
+    public void setTagHorizontalPadding(int tagHorizontalPadding) {
+        mTagHorizontalPadding = tagHorizontalPadding;
+    }
+
+    public int getTagVerticalPadding() {
+        return mTagVerticalPadding;
+    }
+
+    public void setTagVerticalPadding(int tagVerticalPadding) {
+        mTagVerticalPadding = tagVerticalPadding;
+    }
+
+    public TagView.OnTagClickListener getOnTagClickListener() {
+        return mOnTagClickListener;
+    }
+
+    public void setOnTagClickListener(TagView.OnTagClickListener onTagClickListener) {
+        mOnTagClickListener = onTagClickListener;
+        // 避免先调用设置TagView，后设置监听器导致前面设置的TagView不能响应点击
+        for (TagView tagView : mTagViews) {
+            tagView.setTagClickListener(mOnTagClickListener);
+        }
+    }
+
+    public void setTagMode(@TagView.TagMode int tagMode) {
+        mTagMode = tagMode;
+    }
 
     /******************************************************************/
 
@@ -176,7 +362,7 @@ public class TagGroup extends ViewGroup {
      * @param text tag内容
      */
     public void addTag(String text) {
-        addView(new TagView(getContext(), text));
+        addView(_initTagView(text));
     }
 
     public void addTags(String... textList) {
@@ -193,5 +379,4 @@ public class TagGroup extends ViewGroup {
     public void setTags(String... textList) {
         cleanTags();
         addTags(textList);
-    }
-}
+    }}

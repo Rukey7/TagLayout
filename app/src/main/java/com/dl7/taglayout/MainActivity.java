@@ -9,8 +9,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.dl7.taglibrary.TagGroup;
 import com.dl7.taglibrary.TagView;
+import com.dl7.taglibrary.TagGroup;
 
 import java.util.Random;
 
@@ -47,12 +47,14 @@ public class MainActivity extends AppCompatActivity {
                 mTagGroup.cleanTags();
             }
         });
+//        mTagGroup.setPressFeedback(true);
+        mTagGroup.setFitTagNum(3);
         mTagGroup.setTags(mTagWords);
         mTagGroup.setTagBgColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
         mTagGroup.setTagBorderColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
         mTagGroup.setTagTextColor(Color.WHITE);
         mTagGroup.setTagMode(TagView.MODE_ARC);
-        mTagGroup.setBgColor(ContextCompat.getColor(this, android.R.color.holo_orange_light));
+        mTagGroup.setBgColor(ContextCompat.getColor(this, android.R.color.white));
         mTagGroup.setBorderColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
         mTagGroup.setBorderWidth(1);
         mTagGroup.setOnTagClickListener(new TagView.OnTagClickListener() {
@@ -68,5 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "长点击："+text, Toast.LENGTH_SHORT).show();
             }
         });
+
+
     }
 }
