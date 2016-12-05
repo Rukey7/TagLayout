@@ -1,16 +1,17 @@
-package com.dl7.taglibrary;
+package com.dl7.tag;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.dl7.taglibrary.utils.MeasureUtils;
+import com.dl7.tag.utils.ColorsFactory;
+import com.dl7.tag.utils.MeasureUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
  * Created by long on 2016/7/20.
  * TagGroup
  */
-public class TagGroup extends ViewGroup {
+public class TagLayout extends ViewGroup {
 
     private Paint mPaint;
     // 背景色
@@ -52,47 +53,69 @@ public class TagGroup extends ViewGroup {
     // 这个用来保存设置监听器之前的TagView
     private List<TagView> mTagViews = new ArrayList<>();
     // 显示模式
-    private int mTagMode = TagView.MODE_ROUND_RECT;
-    private int mFitTagNum = TagView.INVALID_VALUE;
-    private boolean mIsPressFeedback = false;
+    private int mTagShape;
+    private int mFitTagNum;
+    private int mIconPadding;
+    private boolean mIsPressFeedback;
+    // 显示类型
+    private int mTagMode;
+    // 固定状态的TagView
+    private TagView mFitTagView;
+    // 使能随机颜色
+    private boolean mEnableRandomColor;
 
 
-    public TagGroup(Context context) {
+    public TagLayout(Context context) {
         this(context, null);
     }
 
-    public TagGroup(Context context, AttributeSet attrs) {
+    public TagLayout(Context context, AttributeSet attrs) {
         this(context, attrs, -1);
     }
 
-    public TagGroup(Context context, AttributeSet attrs, int defStyleAttr) {
+    public TagLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        _init(context);
+        _init(context, attrs, defStyleAttr);
     }
 
-    private void _init(Context context) {
+    private void _init(Context context, AttributeSet attrs, int defStyleAttr) {
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mBgColor = Color.parseColor("#11FF0000");
-        mBorderColor = Color.parseColor("#22FF0000");
-        mBorderWidth = MeasureUtils.dp2px(context, 0.5f);
-        mRadius = MeasureUtils.dp2px(context, 5f);
-        int defaultInterval = (int) MeasureUtils.dp2px(context, 5f);
-        mHorizontalInterval = defaultInterval;
-        mVerticalInterval = defaultInterval;
         mRect = new RectF();
+
+        final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TagLayout);
+        try {
+            mTagMode = a.getInteger(R.styleable.TagLayout_tag_mode, TagView.MODE_NORMAL);
+            mTagShape = a.getInteger(R.styleable.TagLayout_tag_shape, TagView.SHAPE_ROUND_RECT);
+            mIsPressFeedback = a.getBoolean(R.styleable.TagLayout_tag_press_feedback, false);
+            mEnableRandomColor = a.getBoolean(R.styleable.TagLayout_tag_random_color, false);
+            mFitTagNum = a.getInteger(R.styleable.TagLayout_tab_layout_fit_num, TagView.INVALID_VALUE);
+            mBgColor = a.getColor(R.styleable.TagLayout_tab_layout_bg_color, Color.WHITE);
+            mBorderColor = a.getColor(R.styleable.TagLayout_tab_layout_border_color, Color.WHITE);
+            mBorderWidth = a.getDimension(R.styleable.TagLayout_tab_layout_border_width, MeasureUtils.dp2px(context, 0.5f));
+            mRadius = a.getDimension(R.styleable.TagLayout_tab_layout_border_radius, MeasureUtils.dp2px(context, 5f));
+            mHorizontalInterval = (int) a.getDimension(R.styleable.TagLayout_tab_layout_horizontal_interval, MeasureUtils.dp2px(context, 5f));
+            mVerticalInterval = (int) a.getDimension(R.styleable.TagLayout_tab_layout_vertical_interval, MeasureUtils.dp2px(context, 5f));
+
+            mTagBgColor = a.getColor(R.styleable.TagLayout_tab_view_bg_color, Color.WHITE);
+            mTagBorderColor = a.getColor(R.styleable.TagLayout_tab_view_bg_color, Color.parseColor("#ff333333"));
+            mTagTextColor = a.getColor(R.styleable.TagLayout_tab_view_text_color, Color.parseColor("#ff666666"));
+            mTagBorderWidth = a.getDimension(R.styleable.TagLayout_tab_view_border_width, MeasureUtils.dp2px(context, 0.5f));
+            mTagTextSize = a.getFloat(R.styleable.TagLayout_tab_view_text_size, 13.0f);
+            mTagRadius = a.getDimension(R.styleable.TagLayout_tab_view_border_radius, MeasureUtils.dp2px(context, 5f));
+            mTagHorizontalPadding = (int) a.getDimension(R.styleable.TagLayout_tab_view_horizontal_padding, MeasureUtils.dp2px(context, 5f));
+            mTagVerticalPadding = (int) a.getDimension(R.styleable.TagLayout_tab_view_vertical_padding, MeasureUtils.dp2px(context, 5f));
+            mIconPadding = (int) a.getDimension(R.styleable.TagLayout_tab_view_icon_padding, MeasureUtils.dp2px(context, 3f));
+        } finally {
+            a.recycle();
+        }
         // 如果想要自己绘制内容，则必须设置这个标志位为false，否则onDraw()方法不会调用
         setWillNotDraw(false);
-        setPadding(defaultInterval, defaultInterval, defaultInterval, defaultInterval);
+        setPadding(mHorizontalInterval, mVerticalInterval, mHorizontalInterval, mVerticalInterval);
 
-        // 初始化TagView
-        mTagBgColor = Color.parseColor("#33F44336");
-        mTagBorderColor = Color.parseColor("#88F44336");
-        mTagTextColor = Color.parseColor("#FF666666");
-        mTagBorderWidth = MeasureUtils.dp2px(context, 0.5f);
-        mTagTextSize = 13.0f;
-        mTagRadius = MeasureUtils.dp2px(context, 5f);
-        mTagHorizontalPadding = (int) MeasureUtils.dp2px(context, 5);
-        mTagVerticalPadding = (int) MeasureUtils.dp2px(context, 5);
+        if (mTagMode == TagView.MODE_CHANGE) {
+            mFitTagView = _initTagView("换一换", TagView.MODE_CHANGE);
+            addView(mFitTagView);
+        }
     }
 
     @Override
@@ -103,7 +126,6 @@ public class TagGroup extends ViewGroup {
         int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
         // 计算可用宽度，为测量宽度减去左右padding值，这个放在measureChildren前面，在子视图中会用到这个参数
         mAvailableWidth = widthSpecSize - getPaddingLeft() - getPaddingRight();
-        Log.e("TagGroup", "onMeasure " + mAvailableWidth);
         // 测量子视图
         measureChildren(widthMeasureSpec, heightMeasureSpec);
         int childCount = getChildCount();
@@ -135,7 +157,7 @@ public class TagGroup extends ViewGroup {
         // 设置测量宽高，记得算上padding
         if (childCount == 0) {
             setMeasuredDimension(0, 0);
-        } else if (heightSpecMode == MeasureSpec.UNSPECIFIED || heightSpecMode == MeasureSpec.AT_MOST){
+        } else if (heightSpecMode == MeasureSpec.UNSPECIFIED || heightSpecMode == MeasureSpec.AT_MOST) {
             setMeasuredDimension(widthSpecSize, measureHeight + getPaddingTop() + getPaddingBottom());
         } else {
             setMeasuredDimension(widthSpecSize, heightSpecSize);
@@ -200,7 +222,9 @@ public class TagGroup extends ViewGroup {
         canvas.drawRoundRect(mRect, mRadius, mRadius, mPaint);
     }
 
-    /*********************************设置TagGroup*********************************/
+    /*********************************
+     * 设置TagGroup
+     *********************************/
 
     public int getBgColor() {
         return mBgColor;
@@ -250,12 +274,8 @@ public class TagGroup extends ViewGroup {
         mHorizontalInterval = horizontalInterval;
     }
 
-    public int getAvailableWidth() {
+    protected int getAvailableWidth() {
         return mAvailableWidth;
-    }
-
-    public void setAvailableWidth(int availableWidth) {
-        mAvailableWidth = availableWidth;
     }
 
     public int getFitTagNum() {
@@ -266,13 +286,25 @@ public class TagGroup extends ViewGroup {
         mFitTagNum = fitTagNum;
     }
 
-    /*********************************设置TagView*********************************/
+    /*********************************
+     * 设置TagView
+     *********************************/
 
-    private TagView _initTagView(String text) {
+    private TagView _initTagView(String text, @TagView.TagMode int tagMode) {
         TagView tagView = new TagView(getContext(), text);
-        tagView.setBgColor(mTagBgColor);
-        tagView.setBorderColor(mTagBorderColor);
-        tagView.setTextColor(mTagTextColor);
+        if (mEnableRandomColor) {
+            int[] color = ColorsFactory.provideColor();
+            if (mIsPressFeedback) {
+                tagView.setTextColor(color[0]);
+            } else {
+                tagView.setBgColor(color[1]);
+            }
+            tagView.setBorderColor(color[0]);
+        } else {
+            tagView.setBgColor(mTagBgColor);
+            tagView.setBorderColor(mTagBorderColor);
+            tagView.setTextColor(mTagTextColor);
+        }
         tagView.setBorderWidth(mTagBorderWidth);
         tagView.setRadius(mTagRadius);
         tagView.setTextSize(mTagTextSize);
@@ -283,7 +315,9 @@ public class TagGroup extends ViewGroup {
         if (mOnTagClickListener == null) {
             mTagViews.add(tagView);
         }
-        tagView.setTagMode(mTagMode);
+        tagView.setTagShape(mTagShape);
+        tagView.setTagMode(tagMode);
+        tagView.setCompoundDrawablePadding(mIconPadding);
         return tagView;
     }
 
@@ -293,6 +327,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagBgColor(int tagBgColor) {
         mTagBgColor = tagBgColor;
+        if (mFitTagView != null) {
+            mFitTagView.setBgColor(mTagBgColor);
+        }
     }
 
     public int getTagBorderColor() {
@@ -301,6 +338,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagBorderColor(int tagBorderColor) {
         mTagBorderColor = tagBorderColor;
+        if (mFitTagView != null) {
+            mFitTagView.setBorderColor(mTagBorderColor);
+        }
     }
 
     public int getTagTextColor() {
@@ -309,6 +349,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagTextColor(int tagTextColor) {
         mTagTextColor = tagTextColor;
+        if (mFitTagView != null) {
+            mFitTagView.setTextColor(mTagTextColor);
+        }
     }
 
     public float getTagBorderWidth() {
@@ -317,6 +360,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagBorderWidth(float tagBorderWidth) {
         mTagBorderWidth = MeasureUtils.dp2px(getContext(), tagBorderWidth);
+        if (mFitTagView != null) {
+            mFitTagView.setBorderWidth(mTagBorderWidth);
+        }
     }
 
     public float getTagTextSize() {
@@ -325,6 +371,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagTextSize(float tagTextSize) {
         mTagTextSize = tagTextSize;
+        if (mFitTagView != null) {
+            mFitTagView.setTextSize(tagTextSize);
+        }
     }
 
     public float getTagRadius() {
@@ -333,6 +382,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagRadius(float tagRadius) {
         mTagRadius = tagRadius;
+        if (mFitTagView != null) {
+            mFitTagView.setRadius(mTagRadius);
+        }
     }
 
     public int getTagHorizontalPadding() {
@@ -341,6 +393,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagHorizontalPadding(int tagHorizontalPadding) {
         mTagHorizontalPadding = tagHorizontalPadding;
+        if (mFitTagView != null) {
+            mFitTagView.setHorizontalPadding(mTagHorizontalPadding);
+        }
     }
 
     public int getTagVerticalPadding() {
@@ -349,6 +404,9 @@ public class TagGroup extends ViewGroup {
 
     public void setTagVerticalPadding(int tagVerticalPadding) {
         mTagVerticalPadding = tagVerticalPadding;
+        if (mFitTagView != null) {
+            mFitTagView.setVerticalPadding(mTagVerticalPadding);
+        }
     }
 
     public boolean isPressFeedback() {
@@ -357,6 +415,9 @@ public class TagGroup extends ViewGroup {
 
     public void setPressFeedback(boolean pressFeedback) {
         mIsPressFeedback = pressFeedback;
+        if (mFitTagView != null) {
+            mFitTagView.setPressFeedback(mIsPressFeedback);
+        }
     }
 
     public TagView.OnTagClickListener getOnTagClickListener() {
@@ -371,33 +432,100 @@ public class TagGroup extends ViewGroup {
         }
     }
 
-    public void setTagMode(@TagView.TagMode int tagMode) {
-        mTagMode = tagMode;
+    public void setTagShape(@TagView.TagShape int tagShape) {
+        mTagShape = tagShape;
+    }
+
+    public void setEnableRandomColor(boolean enableRandomColor) {
+        mEnableRandomColor = enableRandomColor;
+    }
+
+    public void setIconPadding(int padding) {
+        mIconPadding = padding;
+        if (mFitTagView != null) {
+            mFitTagView.setCompoundDrawablePadding(mIconPadding);
+        }
     }
 
     /******************************************************************/
 
     /**
-     * 添加Tag
-     * @param text tag内容
+     * add Tag
+     *
+     * @param text tag content
      */
     public void addTag(String text) {
-        addView(_initTagView(text));
+        if (mTagMode == TagView.MODE_CHANGE) {
+            addView(_initTagView(text, TagView.MODE_NORMAL), getChildCount() - 1);
+        } else {
+            addView(_initTagView(text, TagView.MODE_NORMAL));
+        }
     }
 
+    /**
+     * add Tags
+     *
+     * @param textList tag list
+     */
     public void addTags(String... textList) {
         for (String text : textList) {
             addTag(text);
         }
     }
 
+    /**
+     * clean Tags
+     */
     public void cleanTags() {
-        removeAllViews();
+        if (mTagMode == TagView.MODE_CHANGE) {
+            removeViews(0, getChildCount() - 1);
+            mTagViews.clear();
+            mTagViews.add(mFitTagView);
+        } else {
+            removeAllViews();
+            mTagViews.clear();
+        }
         postInvalidate();
     }
 
+    /**
+     * set Tags
+     *
+     * @param textList tag list
+     */
     public void setTags(String... textList) {
         cleanTags();
         addTags(textList);
+    }
+
+    /**
+     * update Tags
+     *
+     * @param textList tag list
+     */
+    public void updateTags(String... textList) {
+        int startPos = 0;
+        int minSize;
+        if (mTagMode == TagView.MODE_CHANGE) {
+            startPos = 1;
+            minSize = Math.min(textList.length, mTagViews.size() - 1);
+        } else {
+            minSize = Math.min(textList.length, mTagViews.size());
+        }
+        for (int i = 0; i < minSize; i++) {
+            mTagViews.get(i + startPos).setText(textList[i]);
+        }
+        if (mEnableRandomColor) {
+            for (TagView tagView : mTagViews) {
+                int[] color = ColorsFactory.provideColor();
+                if (mIsPressFeedback) {
+                    tagView.updateTagColor(color[0]);
+                } else {
+                    tagView.setBgColor(color[1]);
+                }
+                tagView.setBorderColor(color[0]);
+            }
+            postInvalidate();
+        }
     }
 }

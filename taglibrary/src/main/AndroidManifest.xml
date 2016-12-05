@@ -1,4 +1,4 @@
-<manifest package="com.dl7.taglibrary"
+<manifest package="com.dl7.tag"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application

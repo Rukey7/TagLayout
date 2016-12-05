@@ -1,4 +1,4 @@
-package com.dl7.taglibrary.old;
+package com.dl7.tag.old;
 
 import android.content.Context;
 import android.graphics.Canvas;

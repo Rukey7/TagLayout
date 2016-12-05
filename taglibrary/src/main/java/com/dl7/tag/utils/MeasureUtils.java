@@ -1,10 +1,12 @@
-package com.dl7.taglibrary.utils;
+package com.dl7.tag.utils;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.util.TypedValue;
 
 /**
  * Created by Rukey7 on 2016/7/18.
+ * 测量帮助类
  */
 public class MeasureUtils {
 
@@ -23,4 +25,15 @@ public class MeasureUtils {
                 context.getResources().getDisplayMetrics());
     }
 
+    /**
+     * 获取字体高度
+     * @param fontSize
+     * @return
+     */
+    public static int getFontHeight(float fontSize) {
+        Paint paint = new Paint();
+        paint.setTextSize(fontSize);
+        Paint.FontMetrics fm = paint.getFontMetrics();
+        return (int) Math.ceil(fm.descent - fm.top) + 2;
+    }
 }

@@ -1,0 +1,36 @@
+<resources>
+
+    <declare-styleable name="TagLayout">
+        <attr name="tag_mode" format="enum">
+            <enum name="normal" value="201"/>
+            <enum name="edit" value="202"/>
+            <enum name="change" value="203"/>
+        </attr>
+        <attr name="tag_shape" format="enum">
+            <enum name="round_rect" value="101"/>
+            <enum name="arc" value="102"/>
+            <enum name="rect" value="103"/>
+        </attr>
+        <attr name="tag_random_color" format="boolean"/>
+        <attr name="tag_press_feedback" format="boolean"/>
+        <!-- TagLayout -->
+        <attr name="tab_layout_bg_color" format="color"/>
+        <attr name="tab_layout_border_color" format="color"/>
+        <attr name="tab_layout_border_width" format="dimension"/>
+        <attr name="tab_layout_border_radius" format="dimension"/>
+        <attr name="tab_layout_vertical_interval" format="dimension"/>
+        <attr name="tab_layout_horizontal_interval" format="dimension"/>
+        <attr name="tab_layout_fit_num" format="integer"/>
+        <!-- TagView -->
+        <attr name="tab_view_bg_color" format="color"/>
+        <attr name="tab_view_border_color" format="color"/>
+        <attr name="tab_view_text_color" format="color"/>
+        <attr name="tab_view_border_width" format="dimension"/>
+        <attr name="tab_view_border_radius" format="dimension"/>
+        <attr name="tab_view_text_size" format="float"/>
+        <attr name="tab_view_vertical_padding" format="dimension"/>
+        <attr name="tab_view_horizontal_padding" format="dimension"/>
+        <attr name="tab_view_icon_padding" format="dimension"/>
+    </declare-styleable>
+
+</resources>

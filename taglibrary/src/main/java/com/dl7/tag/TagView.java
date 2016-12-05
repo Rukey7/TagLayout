@@ -1,17 +1,22 @@
-package com.dl7.taglibrary;
+package com.dl7.tag;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+
+import com.dl7.tag.utils.MeasureUtils;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,10 +30,6 @@ import java.lang.annotation.Target;
  */
 public class TagView extends TextView {
 
-    // 3种模式：圆角矩形、圆弧、直角矩形
-    public final static int MODE_ROUND_RECT = 1;
-    public final static int MODE_ARC = 2;
-    public final static int MODE_RECT = 3;
     // 无效数值
     public final static int INVALID_VALUE = -1;
 
@@ -53,14 +54,14 @@ public class TagView extends TextView {
     private boolean mIsAdjusted = false;
     // 点击监听器
     private OnTagClickListener mTagClickListener;
-    // 显示模式
-    private int mTagMode = MODE_ROUND_RECT;
     // 标签是否被按住
     private boolean mIsTagPress = false;
     // 宽度固定
     private int mFitWidth = INVALID_VALUE;
     // 是否使能按压反馈
     private boolean mIsPressFeedback = false;
+    // 原始标签颜色
+    private int mOriTextColor;
 
 
     public TagView(Context context, String text) {
@@ -104,15 +105,17 @@ public class TagView extends TextView {
         });
     }
 
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int fitTagNum = ((TagGroup) getParent()).getFitTagNum();
+        int fitTagNum = ((TagLayout) getParent()).getFitTagNum();
         if (fitTagNum == INVALID_VALUE) {
+            if (mTagMode == MODE_CHANGE) {
+                int size = MeasureUtils.getFontHeight(getTextSize());
+            }
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         } else {
-            int availableWidth = ((TagGroup) getParent()).getAvailableWidth();
-            int horizontalInterval = ((TagGroup) getParent()).getHorizontalInterval();
+            int availableWidth = ((TagLayout) getParent()).getAvailableWidth();
+            int horizontalInterval = ((TagLayout) getParent()).getHorizontalInterval();
             int width = (availableWidth - (fitTagNum - 1) * horizontalInterval) / fitTagNum;
             int fitWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
             super.onMeasure(fitWidthSpec, heightMeasureSpec);
@@ -131,22 +134,24 @@ public class TagView extends TextView {
     @Override
     protected void onDraw(Canvas canvas) {
         float radius = mRadius;
-        if (mTagMode == MODE_ARC) {
+        if (mTagShape == SHAPE_ARC) {
             radius = mRect.height() / 2;
-        } else if (mTagMode == MODE_RECT) {
+        } else if (mTagShape == SHAPE_RECT) {
             radius = 0;
         }
         // 是否进行按压反馈处理
         if (mIsPressFeedback) {
             // 按压反馈只会使用 mBgColor，且字体颜色在白色和 mBgColor 色直接变换
-            mPaint.setColor(mBgColor);
+            mPaint.setColor(mOriTextColor);
             if (mIsTagPress) {
                 mPaint.setStyle(Paint.Style.FILL);
                 setTextColor(Color.WHITE);
+                _setIconColor(Color.WHITE);
             } else {
                 mPaint.setStyle(Paint.Style.STROKE);
                 mPaint.setStrokeWidth(mBorderWidth);
-                setTextColor(mBgColor);
+                setTextColor(mOriTextColor);
+                _setIconColor(mOriTextColor);
             }
             canvas.drawRoundRect(mRect, radius, radius, mPaint);
         } else {
@@ -159,6 +164,7 @@ public class TagView extends TextView {
             mPaint.setStrokeWidth(mBorderWidth);
             mPaint.setColor(mBorderColor);
             canvas.drawRoundRect(mRect, radius, radius, mPaint);
+            _setIconColor(mOriTextColor);
         }
 
         super.onDraw(canvas);
@@ -175,7 +181,7 @@ public class TagView extends TextView {
         // 获取最大可用宽度
         int availableWidth;
         if (mFitWidth == INVALID_VALUE) {
-            availableWidth = ((TagGroup) getParent()).getAvailableWidth();
+            availableWidth = ((TagLayout) getParent()).getAvailableWidth();
         } else {
             availableWidth = mFitWidth;
         }
@@ -204,9 +210,13 @@ public class TagView extends TextView {
             strBuilder.append("...");
             setText(strBuilder.toString());
         }
+
+        _initIcon(textWidth);
     }
 
-    /********************************* 开放接口 *********************************/
+    /**
+     * ==================================== 开放接口 ====================================
+     */
 
     public int getBgColor() {
         return mBgColor;
@@ -272,11 +282,18 @@ public class TagView extends TextView {
 
     public void setPressFeedback(boolean pressFeedback) {
         mIsPressFeedback = pressFeedback;
+        if (mIsPressFeedback) {
+            mOriTextColor = getCurrentTextColor();
+        }
     }
 
-    /*********************************
-     * 点击监听
-     *********************************/
+    public void updateTagColor(int color) {
+        mOriTextColor = color;
+    }
+
+    /**
+     * ==================================== 点击监听 ====================================
+     */
 
     public OnTagClickListener getTagClickListener() {
         return mTagClickListener;
@@ -312,6 +329,12 @@ public class TagView extends TextView {
         return super.onTouchEvent(event);
     }
 
+    /**
+     * 判断是否在 Tag 控件内
+     * @param x
+     * @param y
+     * @return
+     */
     private boolean _isViewUnder(float x, float y) {
         return x >= 0 && x < getWidth() &&
                 y >= 0 && y < getHeight();
@@ -327,9 +350,34 @@ public class TagView extends TextView {
     }
 
 
-    /*********************************
-     * 显示模式
-     *********************************/
+    /**
+     * ==================================== 显示模式 ====================================
+     */
+
+    // 3种外形模式：圆角矩形、圆弧、直角矩形
+    public final static int SHAPE_ROUND_RECT = 101;
+    public final static int SHAPE_ARC = 102;
+    public final static int SHAPE_RECT = 103;
+    // 3种类型模式：正常、编辑、换一换
+    public final static int MODE_NORMAL = 201;
+    public final static int MODE_EDIT = 202;
+    public final static int MODE_CHANGE = 203;
+
+    // 显示外形
+    private int mTagShape = SHAPE_ROUND_RECT;
+    // 显示类型
+    private int mTagMode = MODE_NORMAL;
+    // 装饰的icon
+    private Drawable mDecorateIcon;
+
+
+    public int getTagShape() {
+        return mTagShape;
+    }
+
+    public void setTagShape(@TagShape int tagShape) {
+        mTagShape = tagShape;
+    }
 
     public int getTagMode() {
         return mTagMode;
@@ -339,7 +387,44 @@ public class TagView extends TextView {
         mTagMode = tagMode;
     }
 
-    @IntDef({MODE_ROUND_RECT, MODE_ARC, MODE_RECT})
+    /**
+     * 初始化 ICON
+     * @param textWidth
+     */
+    private void _initIcon(float textWidth) {
+        if (mTagMode == MODE_CHANGE) {
+            int size = MeasureUtils.getFontHeight(getTextSize());
+            int left;
+            if (mFitWidth == INVALID_VALUE) {
+                left = 0;
+            } else {
+                int drawablePadding = getCompoundDrawablePadding();
+                left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - drawablePadding / 2;
+            }
+            mDecorateIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_change);
+            mDecorateIcon.setBounds(left, 0, size + left, size);
+            mDecorateIcon.setColorFilter(getCurrentTextColor(), PorterDuff.Mode.SRC_IN);
+            setCompoundDrawables(mDecorateIcon, null, null, null);
+        }
+    }
+
+    /**
+     * 设置 icon 颜色
+     * @param color
+     */
+    private void _setIconColor(int color) {
+        if (mTagMode == MODE_CHANGE && mDecorateIcon != null) {
+            mDecorateIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        }
+    }
+
+    @IntDef({SHAPE_ROUND_RECT, SHAPE_ARC, SHAPE_RECT})
+    @Retention(RetentionPolicy.SOURCE)
+    @Target(ElementType.PARAMETER)
+    public @interface TagShape {
+    }
+
+    @IntDef({MODE_NORMAL, MODE_EDIT, MODE_CHANGE})
     @Retention(RetentionPolicy.SOURCE)
     @Target(ElementType.PARAMETER)
     public @interface TagMode {

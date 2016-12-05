@@ -1,4 +1,4 @@
-package com.dl7.taglibrary.old;
+package com.dl7.tag.old;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,7 +9,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.dl7.taglibrary.utils.MeasureUtils;
+import com.dl7.tag.utils.MeasureUtils;
 
 import java.util.ArrayList;
 import java.util.List;

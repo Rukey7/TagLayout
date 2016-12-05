@@ -1,4 +1,4 @@
-package com.dl7.taglibrary;
+package com.dl7.tag;
 
 import org.junit.Test;
 
