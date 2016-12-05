@@ -57,12 +57,10 @@ public class CircleDrawable extends Drawable implements Animatable {
         mPaint.setStrokeWidth(5);
     }
 
-
     @Override
     public void draw(Canvas canvas) {
         // 绘制圆圈
         canvas.drawCircle(mRect.centerX(), mRect.centerY(), mRadius, mPaint);
-
     }
 
     @Override

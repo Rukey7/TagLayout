@@ -403,9 +403,6 @@ public class TagView extends TextView {
 
     public void setTagMode(@TagMode int tagMode) {
         mTagMode = tagMode;
-//        if (mTagMode == MODE_CHANGE) {
-//            mIsAdjusted = false;
-//        }
     }
 
     /**
