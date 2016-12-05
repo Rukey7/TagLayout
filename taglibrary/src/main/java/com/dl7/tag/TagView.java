@@ -1,14 +1,14 @@
 package com.dl7.tag;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -16,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import com.dl7.tag.drawable.RotateDrawable;
 import com.dl7.tag.utils.MeasureUtils;
 
 import java.lang.annotation.ElementType;
@@ -367,7 +368,6 @@ public class TagView extends TextView {
         void onTagLongClick(String text, @TagMode int tagMode);
     }
 
-
     /**
      * ==================================== 显示模式 ====================================
      */
@@ -386,7 +386,7 @@ public class TagView extends TextView {
     // 显示类型
     private int mTagMode = MODE_NORMAL;
     // 装饰的icon
-    private Drawable mDecorateIcon;
+    private RotateDrawable mDecorateIcon;
 
 
     public int getTagShape() {
@@ -418,7 +418,8 @@ public class TagView extends TextView {
                 int drawablePadding = getCompoundDrawablePadding();
                 left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - drawablePadding / 2;
             }
-            mDecorateIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_change);
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
+            mDecorateIcon = new RotateDrawable(bitmap, left);
             mDecorateIcon.setBounds(left, 0, size + left, size);
             mDecorateIcon.setColorFilter(getCurrentTextColor(), PorterDuff.Mode.SRC_IN);
             setCompoundDrawables(mDecorateIcon, null, null, null);
