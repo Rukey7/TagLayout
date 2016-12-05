@@ -63,16 +63,16 @@ public class MainActivity extends AppCompatActivity {
         mTagGroup.setTags(mTagWords);
         mTagGroup.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text) {
+            public void onTagClick(String text, @TagView.TagMode int tagMode) {
                 Log.w("MainActivity", text);
                 Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
-                if ("换一换".equals(text)) {
+                if (tagMode == TagView.MODE_CHANGE) {
                     mTagGroup.updateTags(mTagWords2);
                 }
             }
 
             @Override
-            public void onTagLongClick(String text) {
+            public void onTagLongClick(String text, @TagView.TagMode int tagMode) {
                 Log.e("MainActivity", text);
                 Toast.makeText(MainActivity.this, "长点击："+text, Toast.LENGTH_SHORT).show();
             }

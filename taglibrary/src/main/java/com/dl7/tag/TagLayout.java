@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * Created by long on 2016/7/20.
- * TagGroup
+ * TagLayout
  */
 public class TagLayout extends ViewGroup {
 
@@ -222,9 +222,9 @@ public class TagLayout extends ViewGroup {
         canvas.drawRoundRect(mRect, mRadius, mRadius, mPaint);
     }
 
-    /*********************************
-     * 设置TagGroup
-     *********************************/
+    /**
+     * ==================================== 设置TagGroup ====================================
+     */
 
     public int getBgColor() {
         return mBgColor;
@@ -286,9 +286,9 @@ public class TagLayout extends ViewGroup {
         mFitTagNum = fitTagNum;
     }
 
-    /*********************************
-     * 设置TagView
-     *********************************/
+    /**
+     * ==================================== 设置TagView ====================================
+     */
 
     private TagView _initTagView(String text, @TagView.TagMode int tagMode) {
         TagView tagView = new TagView(getContext(), text);
@@ -312,12 +312,10 @@ public class TagLayout extends ViewGroup {
         tagView.setVerticalPadding(mTagVerticalPadding);
         tagView.setPressFeedback(mIsPressFeedback);
         tagView.setTagClickListener(mOnTagClickListener);
-        if (mOnTagClickListener == null) {
-            mTagViews.add(tagView);
-        }
         tagView.setTagShape(mTagShape);
         tagView.setTagMode(tagMode);
         tagView.setCompoundDrawablePadding(mIconPadding);
+        mTagViews.add(tagView);
         return tagView;
     }
 
@@ -447,7 +445,9 @@ public class TagLayout extends ViewGroup {
         }
     }
 
-    /******************************************************************/
+    /**
+     * ==================================== 添加/删除TagView ====================================
+     */
 
     /**
      * add Tag
@@ -513,7 +513,7 @@ public class TagLayout extends ViewGroup {
             minSize = Math.min(textList.length, mTagViews.size());
         }
         for (int i = 0; i < minSize; i++) {
-            mTagViews.get(i + startPos).setText(textList[i]);
+            mTagViews.get(i + startPos).setTagText(textList[i]);
         }
         if (mEnableRandomColor) {
             for (TagView tagView : mTagViews) {

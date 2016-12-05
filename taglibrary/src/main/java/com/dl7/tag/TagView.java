@@ -90,7 +90,7 @@ public class TagView extends TextView {
             @Override
             public void onClick(View v) {
                 if (mTagClickListener != null) {
-                    mTagClickListener.onTagClick(String.valueOf(mTagText));
+                    mTagClickListener.onTagClick(String.valueOf(mTagText), mTagMode);
                 }
             }
         });
@@ -98,7 +98,7 @@ public class TagView extends TextView {
             @Override
             public boolean onLongClick(View v) {
                 if (mTagClickListener != null) {
-                    mTagClickListener.onTagLongClick(String.valueOf(mTagText));
+                    mTagClickListener.onTagLongClick(String.valueOf(mTagText), mTagMode);
                 }
                 return true;
             }
@@ -109,9 +109,6 @@ public class TagView extends TextView {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int fitTagNum = ((TagLayout) getParent()).getFitTagNum();
         if (fitTagNum == INVALID_VALUE) {
-            if (mTagMode == MODE_CHANGE) {
-                int size = MeasureUtils.getFontHeight(getTextSize());
-            }
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         } else {
             int availableWidth = ((TagLayout) getParent()).getAvailableWidth();
@@ -189,8 +186,25 @@ public class TagView extends TextView {
 
         // 计算字符串长度
         float textWidth = mPaint.measureText(String.valueOf(mTagText));
+        if (mTagMode == MODE_CHANGE) {
+            availableWidth -= MeasureUtils.getFontHeight(getTextSize()) + getCompoundDrawablePadding();
+            // 如果“换一换”三个字宽度超出，则改用一个"换"字
+            if (textWidth + mHorizontalPadding * 2 > availableWidth) {
+                textWidth = mPaint.measureText("换");
+                if (textWidth + mHorizontalPadding * 2 > availableWidth) {
+                    // 一个"换"字也超出就不显示字符,并把 DrawablePadding 清零让 Icon 居中
+                    setText("");
+                    mTagText = "";
+                    textWidth = 0;
+                    setCompoundDrawablePadding(0);
+                } else {
+                    setText("换");
+                    mTagText = "换";
+                }
+            }
+        }
         // 如果可用宽度不够用，则做裁剪处理，末尾不3个.
-        if (textWidth + mHorizontalPadding * 2 > availableWidth) {
+        else if (textWidth + mHorizontalPadding * 2 > availableWidth) {
             float pointWidth = mPaint.measureText(".");
             // 计算能显示的字体长度
             float maxTextWidth = availableWidth - mHorizontalPadding * 2 - pointWidth * 3;
@@ -209,6 +223,7 @@ public class TagView extends TextView {
             // 末尾添加3个.并设置为显示字符
             strBuilder.append("...");
             setText(strBuilder.toString());
+            textWidth = mPaint.measureText(strBuilder.toString());
         }
 
         _initIcon(textWidth);
@@ -274,6 +289,8 @@ public class TagView extends TextView {
 
     public void setTagText(CharSequence tagText) {
         mTagText = tagText;
+        setText(tagText);
+        mIsAdjusted = false;
     }
 
     public boolean isPressFeedback() {
@@ -331,6 +348,7 @@ public class TagView extends TextView {
 
     /**
      * 判断是否在 Tag 控件内
+     *
      * @param x
      * @param y
      * @return
@@ -344,9 +362,9 @@ public class TagView extends TextView {
      * 点击监听器
      */
     public interface OnTagClickListener {
-        void onTagClick(String text);
+        void onTagClick(String text, @TagMode int tagMode);
 
-        void onTagLongClick(String text);
+        void onTagLongClick(String text, @TagMode int tagMode);
     }
 
 
@@ -385,19 +403,21 @@ public class TagView extends TextView {
 
     public void setTagMode(@TagMode int tagMode) {
         mTagMode = tagMode;
+//        if (mTagMode == MODE_CHANGE) {
+//            mIsAdjusted = false;
+//        }
     }
 
     /**
      * 初始化 ICON
+     *
      * @param textWidth
      */
     private void _initIcon(float textWidth) {
         if (mTagMode == MODE_CHANGE) {
             int size = MeasureUtils.getFontHeight(getTextSize());
-            int left;
-            if (mFitWidth == INVALID_VALUE) {
-                left = 0;
-            } else {
+            int left = 0;
+            if (mFitWidth != INVALID_VALUE) {
                 int drawablePadding = getCompoundDrawablePadding();
                 left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - drawablePadding / 2;
             }
@@ -410,6 +430,7 @@ public class TagView extends TextView {
 
     /**
      * 设置 icon 颜色
+     *
      * @param color
      */
     private void _setIconColor(int color) {

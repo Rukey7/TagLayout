@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/TagLayout.RandomColor.Change"
-        app:tab_layout_fit_num="4"/>
+        app:tab_layout_fit_num="9"/>
 
     <Button
         android:id="@+id/btn_add"
