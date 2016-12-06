@@ -49,7 +49,8 @@ public class TagLayout extends ViewGroup {
     private float mTagRadius;
     private int mTagHorizontalPadding;
     private int mTagVerticalPadding;
-    private TagView.OnTagClickListener mOnTagClickListener;
+    private TagView.OnTagClickListener mTagClickListener;
+    private TagView.OnTagLongClickListener mTagLongClickListener;
     // 这个用来保存设置监听器之前的TagView
     private List<TagView> mTagViews = new ArrayList<>();
     // 显示模式
@@ -311,7 +312,8 @@ public class TagLayout extends ViewGroup {
         tagView.setHorizontalPadding(mTagHorizontalPadding);
         tagView.setVerticalPadding(mTagVerticalPadding);
         tagView.setPressFeedback(mIsPressFeedback);
-        tagView.setTagClickListener(mOnTagClickListener);
+        tagView.setTagClickListener(mTagClickListener);
+        tagView.setTagLongClickListener(mTagLongClickListener);
         tagView.setTagShape(mTagShape);
         tagView.setTagMode(tagMode);
         tagView.setCompoundDrawablePadding(mIconPadding);
@@ -418,15 +420,27 @@ public class TagLayout extends ViewGroup {
         }
     }
 
-    public TagView.OnTagClickListener getOnTagClickListener() {
-        return mOnTagClickListener;
+    public TagView.OnTagClickListener getTagClickListener() {
+        return mTagClickListener;
     }
 
-    public void setOnTagClickListener(TagView.OnTagClickListener onTagClickListener) {
-        mOnTagClickListener = onTagClickListener;
+    public void setTagClickListener(TagView.OnTagClickListener tagClickListener) {
+        mTagClickListener = tagClickListener;
         // 避免先调用设置TagView，后设置监听器导致前面设置的TagView不能响应点击
         for (TagView tagView : mTagViews) {
-            tagView.setTagClickListener(mOnTagClickListener);
+            tagView.setTagClickListener(mTagClickListener);
+        }
+    }
+
+    public TagView.OnTagLongClickListener getTagLongClickListener() {
+        return mTagLongClickListener;
+    }
+
+    public void setTagLongClickListener(TagView.OnTagLongClickListener tagLongClickListener) {
+        mTagLongClickListener = tagLongClickListener;
+        // 避免先调用设置TagView，后设置监听器导致前面设置的TagView不能响应点击
+        for (TagView tagView : mTagViews) {
+            tagView.setTagLongClickListener(mTagLongClickListener);
         }
     }
 
@@ -459,6 +473,21 @@ public class TagLayout extends ViewGroup {
             addView(_initTagView(text, TagView.MODE_NORMAL), getChildCount() - 1);
         } else {
             addView(_initTagView(text, TagView.MODE_NORMAL));
+        }
+    }
+
+    /**
+     * add Tag
+     *
+     * @param text tag content
+     */
+    public void addTagWithIcon(String text, int iconResId) {
+        TagView tagView = _initTagView(text, TagView.MODE_ICON);
+        tagView.setIconRes(iconResId);
+        if (mTagMode == TagView.MODE_CHANGE) {
+            addView(tagView, getChildCount() - 1);
+        } else {
+            addView(tagView);
         }
     }
 

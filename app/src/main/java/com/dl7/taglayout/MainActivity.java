@@ -61,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
 //        mTagGroup.setBorderColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
 //        mTagGroup.setBorderWidth(1);
         mTagGroup.setTags(mTagWords);
-        mTagGroup.setOnTagClickListener(new TagView.OnTagClickListener() {
+        mTagGroup.addTagWithIcon("更多", R.mipmap.ic_home_more_press);
+        mTagGroup.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(String text, @TagView.TagMode int tagMode) {
                 Log.w("MainActivity", text);
@@ -69,12 +70,6 @@ public class MainActivity extends AppCompatActivity {
                 if (tagMode == TagView.MODE_CHANGE) {
                     mTagGroup.updateTags(mTagWords2);
                 }
-            }
-
-            @Override
-            public void onTagLongClick(String text, @TagView.TagMode int tagMode) {
-                Log.e("MainActivity", text);
-                Toast.makeText(MainActivity.this, "长点击："+text, Toast.LENGTH_SHORT).show();
             }
         });
     }
