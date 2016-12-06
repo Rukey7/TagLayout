@@ -11,8 +11,8 @@
         android:id="@+id/tag_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/TagLayout.RandomColor"
-        app:tab_layout_fit_num="6"/>
+        style="@style/TagLayout.SingleChoice"
+        app:tab_layout_fit_num="4"/>
 
     <Button
         android:id="@+id/btn_add"

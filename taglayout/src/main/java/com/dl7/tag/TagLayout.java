@@ -51,6 +51,8 @@ public class TagLayout extends ViewGroup {
     private int mTagVerticalPadding;
     private TagView.OnTagClickListener mTagClickListener;
     private TagView.OnTagLongClickListener mTagLongClickListener;
+    private TagView.OnTagCheckListener mTagCheckListener;
+    private TagView.OnTagCheckListener mInsideTagCheckListener;
     // 这个用来保存设置监听器之前的TagView
     private List<TagView> mTagViews = new ArrayList<>();
     // 显示模式
@@ -116,6 +118,15 @@ public class TagLayout extends ViewGroup {
         if (mTagMode == TagView.MODE_CHANGE) {
             mFitTagView = _initTagView("换一换", TagView.MODE_CHANGE);
             addView(mFitTagView);
+        } else if (mTagMode == TagView.MODE_SINGLE_CHOICE || mTagMode == TagView.MODE_MULTI_CHOICE) {
+            mInsideTagCheckListener = new TagView.OnTagCheckListener() {
+                @Override
+                public void onTagCheck(String text, boolean isChecked) {
+                    if (mTagCheckListener != null) {
+                        mTagCheckListener.onTagCheck(text, isChecked);
+                    }
+                }
+            };
         }
     }
 
@@ -314,6 +325,7 @@ public class TagLayout extends ViewGroup {
         tagView.setPressFeedback(mIsPressFeedback);
         tagView.setTagClickListener(mTagClickListener);
         tagView.setTagLongClickListener(mTagLongClickListener);
+        tagView.setTagCheckListener(mInsideTagCheckListener);
         tagView.setTagShape(mTagShape);
         tagView.setTagMode(tagMode);
         tagView.setCompoundDrawablePadding(mIconPadding);
@@ -438,10 +450,17 @@ public class TagLayout extends ViewGroup {
 
     public void setTagLongClickListener(TagView.OnTagLongClickListener tagLongClickListener) {
         mTagLongClickListener = tagLongClickListener;
-        // 避免先调用设置TagView，后设置监听器导致前面设置的TagView不能响应点击
         for (TagView tagView : mTagViews) {
             tagView.setTagLongClickListener(mTagLongClickListener);
         }
+    }
+
+    public TagView.OnTagCheckListener getTagCheckListener() {
+        return mTagCheckListener;
+    }
+
+    public void setTagCheckListener(TagView.OnTagCheckListener tagCheckListener) {
+        mTagCheckListener = tagCheckListener;
     }
 
     public void setTagShape(@TagView.TagShape int tagShape) {
@@ -472,7 +491,7 @@ public class TagLayout extends ViewGroup {
         if (mTagMode == TagView.MODE_CHANGE) {
             addView(_initTagView(text, TagView.MODE_NORMAL), getChildCount() - 1);
         } else {
-            addView(_initTagView(text, TagView.MODE_NORMAL));
+            addView(_initTagView(text, mTagMode));
         }
     }
 

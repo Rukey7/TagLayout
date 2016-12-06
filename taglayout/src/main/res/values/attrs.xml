@@ -5,6 +5,8 @@
             <enum name="normal" value="201"/>
             <enum name="edit" value="202"/>
             <enum name="change" value="203"/>
+            <enum name="single_choice" value="205"/>
+            <enum name="multi_choice" value="206"/>
         </attr>
         <attr name="tag_shape" format="enum">
             <enum name="round_rect" value="101"/>

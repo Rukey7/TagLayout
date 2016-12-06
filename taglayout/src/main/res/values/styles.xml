@@ -4,8 +4,8 @@
     <style name="TagLayout">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="tab_layout_bg_color">#ffffbb33</item>
-        <item name="tab_layout_border_color">#ffff8800</item>
+        <item name="tab_layout_bg_color">@android:color/white</item>
+        <item name="tab_layout_border_color">@android:color/white</item>
         <item name="tab_layout_border_width">1dp</item>
         <item name="tab_layout_border_radius">5dp</item>
         <item name="tab_layout_vertical_interval">5dp</item>
@@ -28,8 +28,6 @@
 
     <style name="TagLayout.RandomColor">
         <item name="tag_random_color">true</item>
-        <item name="tab_layout_bg_color">@android:color/transparent</item>
-        <item name="tab_layout_border_color">@android:color/transparent</item>
     </style>
 
     <style name="TagLayout.RandomColor.Arc">
@@ -45,4 +43,11 @@
         <item name="tag_press_feedback">true</item>
     </style>
 
+    <style name="TagLayout.SingleChoice">
+        <item name="tag_mode">single_choice</item>
+    </style>
+
+    <style name="TagLayout.MultiChoice">
+        <item name="tag_mode">multi_choice</item>
+    </style>
 </resources>

@@ -13,6 +13,7 @@ import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -55,9 +56,6 @@ public class TagView extends TextView {
     private RectF mRect;
     // 调整标志位，只做一次
     private boolean mIsAdjusted = false;
-    // 点击监听器
-    private OnTagClickListener mTagClickListener;
-    private OnTagLongClickListener mOnTagLongClickListener;
     // 标签是否被按住
     private boolean mIsTagPress = false;
     // 宽度固定
@@ -96,13 +94,14 @@ public class TagView extends TextView {
                 if (mTagClickListener != null) {
                     mTagClickListener.onTagClick(String.valueOf(mTagText), mTagMode);
                 }
+                _toggleTagCheckStatus();
             }
         });
         setOnLongClickListener(new OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (mOnTagLongClickListener != null) {
-                    mOnTagLongClickListener.onTagLongClick(String.valueOf(mTagText), mTagMode);
+                if (mTagLongClickListener != null) {
+                    mTagLongClickListener.onTagLongClick(String.valueOf(mTagText), mTagMode);
                 }
                 return true;
             }
@@ -140,11 +139,14 @@ public class TagView extends TextView {
         } else if (mTagShape == SHAPE_RECT) {
             radius = 0;
         }
+        Log.w("TagView", ""+mIsPressFeedback);
+        Log.i("TagView", ""+mIsTagPress);
+        Log.d("TagView", ""+mIsChecked);
         // 是否进行按压反馈处理
         if (mIsPressFeedback) {
             // 按压反馈只会使用 mBgColor，且字体颜色在白色和 mBgColor 色直接变换
             mPaint.setColor(mOriTextColor);
-            if (mIsTagPress) {
+            if (mIsTagPress || mIsChecked) {
                 mPaint.setStyle(Paint.Style.FILL);
                 setTextColor(Color.WHITE);
                 _setIconColor(Color.WHITE);
@@ -165,6 +167,7 @@ public class TagView extends TextView {
             mPaint.setStrokeWidth(mBorderWidth);
             mPaint.setColor(mBorderColor);
             canvas.drawRoundRect(mRect, radius, radius, mPaint);
+            // 设置icon颜色
             _setIconColor(getCurrentTextColor());
         }
 
@@ -319,12 +322,21 @@ public class TagView extends TextView {
      * ==================================== 点击监听 ====================================
      */
 
+    // 点击监听器
+    private OnTagClickListener mTagClickListener;
+    private OnTagLongClickListener mTagLongClickListener;
+    private OnTagCheckListener mTagCheckListener;
+
     public void setTagClickListener(OnTagClickListener tagClickListener) {
         mTagClickListener = tagClickListener;
     }
 
     public void setTagLongClickListener(OnTagLongClickListener onTagLongClickListener) {
-        mOnTagLongClickListener = onTagLongClickListener;
+        mTagLongClickListener = onTagLongClickListener;
+    }
+
+    public void setTagCheckListener(OnTagCheckListener onTagCheckListener) {
+        mTagCheckListener = onTagCheckListener;
     }
 
     @Override
@@ -376,6 +388,10 @@ public class TagView extends TextView {
         void onTagLongClick(String text, @TagMode int tagMode);
     }
 
+    public interface OnTagCheckListener {
+        void onTagCheck(String text, boolean isChecked);
+    }
+
     /**
      * ==================================== 显示模式 ====================================
      */
@@ -398,6 +414,8 @@ public class TagView extends TextView {
     private int mTagMode = MODE_NORMAL;
     // 装饰的icon
     private Drawable mDecorateIcon;
+    // 是否选中
+    private boolean mIsChecked = false;
 
 
     public int getTagShape() {
@@ -414,10 +432,33 @@ public class TagView extends TextView {
 
     public void setTagMode(@TagMode int tagMode) {
         mTagMode = tagMode;
+        if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE) {
+            setPressFeedback(true);
+        }
     }
 
     public void setIconRes(int iconResId) {
         mDecorateIcon = ContextCompat.getDrawable(getContext(), iconResId);
+    }
+
+    private void _toggleTagCheckStatus() {
+        mIsChecked = !mIsChecked;
+        postInvalidate();
+        if (mTagCheckListener != null && (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE && mIsChecked)) {
+            mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
+        }
+    }
+
+    public boolean isChecked() {
+        return mIsChecked;
+    }
+
+    private void _cleanTagCheckStatus() {
+        if (mTagCheckListener != null && mIsChecked) {
+            mTagCheckListener.onTagCheck(String.valueOf(mTagText), false);
+        }
+        mIsChecked = false;
+        postInvalidate();
     }
 
     /**
@@ -436,10 +477,8 @@ public class TagView extends TextView {
             if (mTagMode == MODE_CHANGE) {
                 Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
                 mDecorateIcon = new RotateDrawable(bitmap, left);
-                mDecorateIcon.setBounds(left, 0, size + left, size);
-                mDecorateIcon.setColorFilter(getCurrentTextColor(), PorterDuff.Mode.SRC_IN);
-                setCompoundDrawables(mDecorateIcon, null, null, null);
-            } else if (mTagMode == MODE_ICON && mDecorateIcon != null) {
+            }
+            if (mDecorateIcon != null) {
                 mDecorateIcon.setBounds(left, 0, size + left, size);
                 mDecorateIcon.setColorFilter(getCurrentTextColor(), PorterDuff.Mode.SRC_IN);
                 setCompoundDrawables(mDecorateIcon, null, null, null);
@@ -464,7 +503,7 @@ public class TagView extends TextView {
     public @interface TagShape {
     }
 
-    @IntDef({MODE_NORMAL, MODE_EDIT, MODE_CHANGE, MODE_ICON})
+    @IntDef({MODE_NORMAL, MODE_EDIT, MODE_CHANGE, MODE_ICON, MODE_SINGLE_CHOICE, MODE_MULTI_CHOICE})
     @Retention(RetentionPolicy.SOURCE)
     @Target(ElementType.PARAMETER)
     public @interface TagMode {
