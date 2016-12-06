@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.SparseBooleanArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -55,6 +56,7 @@ public class TagLayout extends ViewGroup {
     private TagView.OnTagCheckListener mInsideTagCheckListener;
     // 这个用来保存设置监听器之前的TagView
     private List<TagView> mTagViews = new ArrayList<>();
+    private SparseBooleanArray mCheckSparseArray = new SparseBooleanArray();
     // 显示模式
     private int mTagShape;
     private int mFitTagNum;
@@ -124,6 +126,14 @@ public class TagLayout extends ViewGroup {
                 public void onTagCheck(String text, boolean isChecked) {
                     if (mTagCheckListener != null) {
                         mTagCheckListener.onTagCheck(text, isChecked);
+                    }
+                    for (int i = 0; i < mTagViews.size(); i++) {
+                        if (mTagViews.get(i).getTagText().toString().equals(text)) {
+                            mCheckSparseArray.put(i, isChecked);
+                        } else if (mTagMode == TagView.MODE_SINGLE_CHOICE && mCheckSparseArray.get(i)) {
+                            mTagViews.get(i).cleanTagCheckStatus();
+                            mCheckSparseArray.put(i, false);
+                        }
                     }
                 }
             };
@@ -503,6 +513,7 @@ public class TagLayout extends ViewGroup {
     public void addTagWithIcon(String text, int iconResId) {
         TagView tagView = _initTagView(text, TagView.MODE_ICON);
         tagView.setIconRes(iconResId);
+        tagView.setCompoundDrawablePadding(mIconPadding);
         if (mTagMode == TagView.MODE_CHANGE) {
             addView(tagView, getChildCount() - 1);
         } else {

@@ -13,7 +13,6 @@ import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -139,9 +138,6 @@ public class TagView extends TextView {
         } else if (mTagShape == SHAPE_RECT) {
             radius = 0;
         }
-        Log.w("TagView", ""+mIsPressFeedback);
-        Log.i("TagView", ""+mIsTagPress);
-        Log.d("TagView", ""+mIsChecked);
         // 是否进行按压反馈处理
         if (mIsPressFeedback) {
             // 按压反馈只会使用 mBgColor，且字体颜色在白色和 mBgColor 色直接变换
@@ -453,10 +449,7 @@ public class TagView extends TextView {
         return mIsChecked;
     }
 
-    private void _cleanTagCheckStatus() {
-        if (mTagCheckListener != null && mIsChecked) {
-            mTagCheckListener.onTagCheck(String.valueOf(mTagText), false);
-        }
+    public void cleanTagCheckStatus() {
         mIsChecked = false;
         postInvalidate();
     }
