@@ -13,7 +13,6 @@ import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -191,6 +190,9 @@ public class TagView extends TextView {
 
         // 计算字符串长度
         float textWidth = mPaint.measureText(String.valueOf(mTagText));
+        if (mTagMode == MODE_ICON) {
+            availableWidth -= MeasureUtils.getFontHeight(getTextSize()) + getCompoundDrawablePadding();
+        }
         if (mTagMode == MODE_CHANGE) {
             availableWidth -= MeasureUtils.getFontHeight(getTextSize()) + getCompoundDrawablePadding();
             // 如果“换一换”三个字宽度超出，则改用一个"换"字
@@ -387,6 +389,8 @@ public class TagView extends TextView {
     public final static int MODE_EDIT = 202;
     public final static int MODE_CHANGE = 203;
     public final static int MODE_ICON = 204;
+    public final static int MODE_SINGLE_CHOICE = 205;
+    public final static int MODE_MULTI_CHOICE = 206;
 
     // 显示外形
     private int mTagShape = SHAPE_ROUND_RECT;
@@ -429,12 +433,6 @@ public class TagView extends TextView {
                 int drawablePadding = getCompoundDrawablePadding();
                 left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - drawablePadding / 2;
             }
-            Log.e("TagView", "MODE_ICON " + getMeasuredWidth());
-            Log.w("TagView", "MODE_ICON " + textWidth);
-            Log.w("TagView", "MODE_ICON " + mHorizontalPadding);
-            Log.d("TagView", "MODE_ICON " + size);
-            Log.i("TagView", "MODE_ICON " + left);
-            Log.i("TagView", "MODE_ICON " + getCompoundDrawablePadding());
             if (mTagMode == MODE_CHANGE) {
                 Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
                 mDecorateIcon = new RotateDrawable(bitmap, left);
