@@ -27,6 +27,9 @@
         <attr name="tab_view_bg_color" format="color"/>
         <attr name="tab_view_border_color" format="color"/>
         <attr name="tab_view_text_color" format="color"/>
+        <attr name="tab_view_bg_color_check" format="color"/>
+        <attr name="tab_view_border_color_check" format="color"/>
+        <attr name="tab_view_text_color_check" format="color"/>
         <attr name="tab_view_border_width" format="dimension"/>
         <attr name="tab_view_border_radius" format="dimension"/>
         <attr name="tab_view_text_size" format="float"/>
@@ -35,4 +38,16 @@
         <attr name="tab_view_icon_padding" format="dimension"/>
     </declare-styleable>
 
+    <declare-styleable name="TagView">
+        <!-- TagView -->
+        <attr name="bg_color" format="color"/>
+        <attr name="border_color" format="color"/>
+        <attr name="text_color" format="color"/>
+        <attr name="border_width" format="dimension"/>
+        <attr name="border_radius" format="dimension"/>
+        <attr name="text_size" format="float"/>
+        <attr name="vertical_padding" format="dimension"/>
+        <attr name="horizontal_padding" format="dimension"/>
+        <attr name="icon_padding" format="dimension"/>
+    </declare-styleable>
 </resources>

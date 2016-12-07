@@ -45,6 +45,9 @@ public class TagLayout extends ViewGroup {
     private int mTagBgColor;
     private int mTagBorderColor;
     private int mTagTextColor;
+    private int mTagBgColorCheck;
+    private int mTagBorderColorCheck;
+    private int mTagTextColorCheck;
     private float mTagBorderWidth;
     private float mTagTextSize;
     private float mTagRadius;
@@ -102,8 +105,17 @@ public class TagLayout extends ViewGroup {
             mVerticalInterval = (int) a.getDimension(R.styleable.TagLayout_tab_layout_vertical_interval, MeasureUtils.dp2px(context, 5f));
 
             mTagBgColor = a.getColor(R.styleable.TagLayout_tab_view_bg_color, Color.WHITE);
-            mTagBorderColor = a.getColor(R.styleable.TagLayout_tab_view_bg_color, Color.parseColor("#ff333333"));
+            mTagBorderColor = a.getColor(R.styleable.TagLayout_tab_view_border_color, Color.parseColor("#ff333333"));
             mTagTextColor = a.getColor(R.styleable.TagLayout_tab_view_text_color, Color.parseColor("#ff666666"));
+            if (mIsPressFeedback || mTagMode == TagView.MODE_SINGLE_CHOICE || mTagMode == TagView.MODE_MULTI_CHOICE) {
+                mTagBgColorCheck = a.getColor(R.styleable.TagLayout_tab_view_bg_color_check, mTagTextColor);
+                mTagBorderColorCheck = a.getColor(R.styleable.TagLayout_tab_view_border_color_check, mTagTextColor);
+                mTagTextColorCheck = a.getColor(R.styleable.TagLayout_tab_view_text_color_check, Color.WHITE);
+            } else {
+                mTagBgColorCheck = a.getColor(R.styleable.TagLayout_tab_view_bg_color_check, mTagBgColor);
+                mTagBorderColorCheck = a.getColor(R.styleable.TagLayout_tab_view_border_color_check, mTagBorderColor);
+                mTagTextColorCheck = a.getColor(R.styleable.TagLayout_tab_view_text_color_check, mTagTextColor);
+            }
             mTagBorderWidth = a.getDimension(R.styleable.TagLayout_tab_view_border_width, MeasureUtils.dp2px(context, 0.5f));
             mTagTextSize = a.getFloat(R.styleable.TagLayout_tab_view_text_size, 13.0f);
             mTagRadius = a.getDimension(R.styleable.TagLayout_tab_view_border_radius, MeasureUtils.dp2px(context, 5f));
@@ -315,17 +327,14 @@ public class TagLayout extends ViewGroup {
     private TagView _initTagView(String text, @TagView.TagMode int tagMode) {
         TagView tagView = new TagView(getContext(), text);
         if (mEnableRandomColor) {
-            int[] color = ColorsFactory.provideColor();
-            if (mIsPressFeedback) {
-                tagView.setTextColor(color[0]);
-            } else {
-                tagView.setBgColor(color[1]);
-            }
-            tagView.setBorderColor(color[0]);
+            _setTagRandomColors(tagView);
         } else {
             tagView.setBgColor(mTagBgColor);
             tagView.setBorderColor(mTagBorderColor);
-            tagView.setTextColor(mTagTextColor);
+            tagView.setOriTextColor(mTagTextColor);
+            tagView.setBgColorChecked(mTagBgColorCheck);
+            tagView.setBorderColorChecked(mTagBorderColorCheck);
+            tagView.setTextColorChecked(mTagTextColorCheck);
         }
         tagView.setBorderWidth(mTagBorderWidth);
         tagView.setRadius(mTagRadius);
@@ -341,6 +350,24 @@ public class TagLayout extends ViewGroup {
         tagView.setCompoundDrawablePadding(mIconPadding);
         mTagViews.add(tagView);
         return tagView;
+    }
+
+    private void _setTagRandomColors(TagView tagView) {
+        int[] color = ColorsFactory.provideColor();
+        if (mIsPressFeedback) {
+            tagView.setOriTextColor(color[1]);
+            tagView.setBgColor(Color.WHITE);
+            tagView.setBgColorChecked(color[0]);
+            tagView.setBorderColorChecked(color[0]);
+            tagView.setTextColorChecked(Color.WHITE);
+        } else {
+            tagView.setBgColor(color[1]);
+            tagView.setOriTextColor(mTagTextColor);
+            tagView.setBgColorChecked(color[1]);
+            tagView.setBorderColorChecked(color[0]);
+            tagView.setTextColorChecked(mTagTextColor);
+        }
+        tagView.setBorderColor(color[0]);
     }
 
     public int getTagBgColor() {
@@ -372,7 +399,7 @@ public class TagLayout extends ViewGroup {
     public void setTagTextColor(int tagTextColor) {
         mTagTextColor = tagTextColor;
         if (mFitTagView != null) {
-            mFitTagView.setTextColor(mTagTextColor);
+            mFitTagView.setOriTextColor(mTagTextColor);
         }
     }
 
@@ -511,7 +538,12 @@ public class TagLayout extends ViewGroup {
      * @param text tag content
      */
     public void addTagWithIcon(String text, int iconResId) {
-        TagView tagView = _initTagView(text, TagView.MODE_ICON);
+        TagView tagView;
+        if (mTagMode == TagView.MODE_CHANGE) {
+            tagView = _initTagView(text, TagView.MODE_NORMAL);
+        } else {
+            tagView = _initTagView(text, mTagMode);
+        }
         tagView.setIconRes(iconResId);
         tagView.setCompoundDrawablePadding(mIconPadding);
         if (mTagMode == TagView.MODE_CHANGE) {
@@ -576,13 +608,7 @@ public class TagLayout extends ViewGroup {
         }
         if (mEnableRandomColor) {
             for (TagView tagView : mTagViews) {
-                int[] color = ColorsFactory.provideColor();
-                if (mIsPressFeedback) {
-                    tagView.updateTagColor(color[0]);
-                } else {
-                    tagView.setBgColor(color[1]);
-                }
-                tagView.setBorderColor(color[0]);
+                _setTagRandomColors(tagView);
             }
             postInvalidate();
         }

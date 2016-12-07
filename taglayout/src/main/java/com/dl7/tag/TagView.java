@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.RectF;
@@ -13,6 +12,7 @@ import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,6 +41,12 @@ public class TagView extends TextView {
     private int mBgColor;
     // 边框颜色
     private int mBorderColor;
+    // 选中状态背景色
+    private int mBgColorChecked = INVALID_VALUE;
+    // 选中状态边框颜色
+    private int mBorderColorChecked = INVALID_VALUE;
+    // 选中状态字体颜色
+    private int mTextColorChecked = INVALID_VALUE;
     // 边框大小
     private float mBorderWidth;
     // 边框角半径
@@ -138,19 +144,42 @@ public class TagView extends TextView {
         } else if (mTagShape == SHAPE_RECT) {
             radius = 0;
         }
+        if (mIsTagPress || mIsChecked) {
+            // 设置icon颜色
+            _setIconAndTextColor(mTextColorChecked);
+        } else {
+            _setIconAndTextColor(mOriTextColor);
+        }
+        Log.e("TagView", "onDraw");
         // 是否进行按压反馈处理
         if (mIsPressFeedback) {
-            // 按压反馈只会使用 mBgColor，且字体颜色在白色和 mBgColor 色直接变换
-            mPaint.setColor(mOriTextColor);
+            // 按压反馈只会使用 mOriTextColor，且字体颜色在白色和 mOriTextColor 色直接变换
+//            mPaint.setColor(mOriTextColor);
+//            if (mIsTagPress || mIsChecked) {
+//                mPaint.setStyle(Paint.Style.FILL);
+//                setTextColor(Color.WHITE);
+//            } else {
+//                mPaint.setStyle(Paint.Style.STROKE);
+//                mPaint.setStrokeWidth(mBorderWidth);
+//                setTextColor(mOriTextColor);
+//            }
+//            canvas.drawRoundRect(mRect, radius, radius, mPaint);
+
+            // 绘制背景
+            mPaint.setStyle(Paint.Style.FILL);
             if (mIsTagPress || mIsChecked) {
-                mPaint.setStyle(Paint.Style.FILL);
-                setTextColor(Color.WHITE);
-                _setIconColor(Color.WHITE);
+                mPaint.setColor(mBgColorChecked);
             } else {
-                mPaint.setStyle(Paint.Style.STROKE);
-                mPaint.setStrokeWidth(mBorderWidth);
-                setTextColor(mOriTextColor);
-                _setIconColor(mOriTextColor);
+                mPaint.setColor(mBgColor);
+            }
+            canvas.drawRoundRect(mRect, radius, radius, mPaint);
+            // 绘制边框
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStrokeWidth(mBorderWidth);
+            if (mIsTagPress || mIsChecked) {
+                mPaint.setColor(mBorderColorChecked);
+            } else {
+                mPaint.setColor(mBorderColor);
             }
             canvas.drawRoundRect(mRect, radius, radius, mPaint);
         } else {
@@ -163,9 +192,9 @@ public class TagView extends TextView {
             mPaint.setStrokeWidth(mBorderWidth);
             mPaint.setColor(mBorderColor);
             canvas.drawRoundRect(mRect, radius, radius, mPaint);
-            // 设置icon颜色
-            _setIconColor(getCurrentTextColor());
         }
+        // 设置icon颜色
+//        _setIconAndTextColor(getCurrentTextColor());
 
         super.onDraw(canvas);
     }
@@ -189,7 +218,7 @@ public class TagView extends TextView {
 
         // 计算字符串长度
         float textWidth = mPaint.measureText(String.valueOf(mTagText));
-        if (mTagMode == MODE_ICON) {
+        if (mTagMode != MODE_CHANGE || mDecorateIcon != null) {
             availableWidth -= MeasureUtils.getFontHeight(getTextSize()) + getCompoundDrawablePadding();
         }
         if (mTagMode == MODE_CHANGE) {
@@ -255,6 +284,39 @@ public class TagView extends TextView {
         mBorderColor = borderColor;
     }
 
+    public int getOriTextColor() {
+        return mOriTextColor;
+    }
+
+    public void setOriTextColor(int oriTextColor) {
+        mOriTextColor = oriTextColor;
+        setTextColor(mOriTextColor);
+    }
+
+    public int getBgColorChecked() {
+        return mBgColorChecked;
+    }
+
+    public void setBgColorChecked(int bgColorChecked) {
+        mBgColorChecked = bgColorChecked;
+    }
+
+    public int getBorderColorChecked() {
+        return mBorderColorChecked;
+    }
+
+    public void setBorderColorChecked(int borderColorChecked) {
+        mBorderColorChecked = borderColorChecked;
+    }
+
+    public int getTextColorChecked() {
+        return mTextColorChecked;
+    }
+
+    public void setTextColorChecked(int textColorChecked) {
+        mTextColorChecked = textColorChecked;
+    }
+
     public float getBorderWidth() {
         return mBorderWidth;
     }
@@ -305,13 +367,6 @@ public class TagView extends TextView {
 
     public void setPressFeedback(boolean pressFeedback) {
         mIsPressFeedback = pressFeedback;
-        if (mIsPressFeedback) {
-            mOriTextColor = getCurrentTextColor();
-        }
-    }
-
-    public void updateTagColor(int color) {
-        mOriTextColor = color;
     }
 
     /**
@@ -400,7 +455,6 @@ public class TagView extends TextView {
     public final static int MODE_NORMAL = 201;
     public final static int MODE_EDIT = 202;
     public final static int MODE_CHANGE = 203;
-    public final static int MODE_ICON = 204;
     public final static int MODE_SINGLE_CHOICE = 205;
     public final static int MODE_MULTI_CHOICE = 206;
 
@@ -412,6 +466,10 @@ public class TagView extends TextView {
     private Drawable mDecorateIcon;
     // 是否选中
     private boolean mIsChecked = false;
+    // 是否自动切换选中状态，不使能可以灵活地选择切换，通过用于等待网络返回再做切换
+    private boolean mIsAutoToggleCheck = true;
+    // 图标颜色
+    private int mIconColor = INVALID_VALUE;
 
 
     public int getTagShape() {
@@ -437,16 +495,34 @@ public class TagView extends TextView {
         mDecorateIcon = ContextCompat.getDrawable(getContext(), iconResId);
     }
 
+    public boolean isAutoToggleCheck() {
+        return mIsAutoToggleCheck;
+    }
+
+    public void setAutoToggleCheck(boolean autoToggleCheck) {
+        mIsAutoToggleCheck = autoToggleCheck;
+    }
+
     private void _toggleTagCheckStatus() {
-        mIsChecked = !mIsChecked;
-        postInvalidate();
-        if (mTagCheckListener != null && (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE && mIsChecked)) {
-            mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
+        if (mIsAutoToggleCheck) {
+            mIsChecked = !mIsChecked;
+            postInvalidate();
+            if (mTagCheckListener != null) {
+                mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
+            }
         }
     }
 
     public boolean isChecked() {
         return mIsChecked;
+    }
+
+    public void setChecked(boolean checked) {
+        mIsChecked = checked;
+        postInvalidate();
+        if (mTagCheckListener != null) {
+            mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
+        }
     }
 
     public void cleanTagCheckStatus() {
@@ -460,7 +536,7 @@ public class TagView extends TextView {
      * @param textWidth
      */
     private void _initIcon(float textWidth) {
-        if (mTagMode != MODE_NORMAL) {
+        if (mTagMode == MODE_CHANGE || mDecorateIcon != null) {
             int size = MeasureUtils.getFontHeight(getTextSize());
             int left = 0;
             if (mFitWidth != INVALID_VALUE) {
@@ -480,13 +556,17 @@ public class TagView extends TextView {
     }
 
     /**
-     * 设置 icon 颜色
+     * 设置 icon 和 Text 颜色
      *
      * @param color
      */
-    private void _setIconColor(int color) {
-        if (mDecorateIcon != null) {
+    private void _setIconAndTextColor(int color) {
+        if (mDecorateIcon != null && mIconColor != color) {
+            mIconColor = color;
+            setTextColor(color);
             mDecorateIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        } else {
+            setTextColor(color);
         }
     }
 
@@ -496,7 +576,7 @@ public class TagView extends TextView {
     public @interface TagShape {
     }
 
-    @IntDef({MODE_NORMAL, MODE_EDIT, MODE_CHANGE, MODE_ICON, MODE_SINGLE_CHOICE, MODE_MULTI_CHOICE})
+    @IntDef({MODE_NORMAL, MODE_EDIT, MODE_CHANGE, MODE_SINGLE_CHOICE, MODE_MULTI_CHOICE})
     @Retention(RetentionPolicy.SOURCE)
     @Target(ElementType.PARAMETER)
     public @interface TagMode {

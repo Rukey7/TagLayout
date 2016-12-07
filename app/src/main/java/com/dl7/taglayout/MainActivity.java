@@ -1,6 +1,8 @@
 package com.dl7.taglayout;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -55,19 +57,20 @@ public class MainActivity extends AppCompatActivity {
 //        mTagGroup.setFitTagNum(3);
 //        mTagGroup.setTagBgColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
 //        mTagGroup.setTagBorderColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-//        mTagGroup.setTagTextColor(Color.WHITE);
-//        mTagGroup.setTagShape(TagView.SHAPE_ARC);
 //        mTagGroup.setBgColor(ContextCompat.getColor(this, android.R.color.white));
-//        mTagGroup.setBorderColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
-//        mTagGroup.setBorderWidth(1);
+        mTagGroup.setBorderColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
+        mTagGroup.setBorderWidth(1);
         mTagGroup.setTags(mTagWords);
-//        mTagGroup.addTagWithIcon("更多", R.mipmap.ic_home_more_press);
+        mTagGroup.setTagShape(TagView.SHAPE_ARC);
+        mTagGroup.setTagTextColor(Color.RED);
+        mTagGroup.addTagWithIcon("更多", R.mipmap.ic_home_more_press);
         mTagGroup.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(String text, @TagView.TagMode int tagMode) {
                 Log.w("MainActivity", text);
                 Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
                 if (tagMode == TagView.MODE_CHANGE) {
+                    Log.d("MainActivity", "");
                     mTagGroup.updateTags(mTagWords2);
                 }
             }
