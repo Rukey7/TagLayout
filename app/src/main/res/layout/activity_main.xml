@@ -11,7 +11,7 @@
         android:id="@+id/tag_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/TagLayout.RandomColor.Change"
+        style="@style/TagLayout.MultiChoice"
         app:tab_layout_fit_num="4"/>
 
     <Button

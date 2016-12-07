@@ -398,9 +398,6 @@ public class TagLayout extends ViewGroup {
 
     public void setTagTextColor(int tagTextColor) {
         mTagTextColor = tagTextColor;
-        if (mFitTagView != null) {
-            mFitTagView.setOriTextColor(mTagTextColor);
-        }
     }
 
     public float getTagBorderWidth() {

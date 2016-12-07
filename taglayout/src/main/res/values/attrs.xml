@@ -1,12 +1,13 @@
 <resources>
 
+    <!-- TagLayout -->
     <declare-styleable name="TagLayout">
         <attr name="tag_mode" format="enum">
             <enum name="normal" value="201"/>
             <enum name="edit" value="202"/>
             <enum name="change" value="203"/>
-            <enum name="single_choice" value="205"/>
-            <enum name="multi_choice" value="206"/>
+            <enum name="single_choice" value="204"/>
+            <enum name="multi_choice" value="205"/>
         </attr>
         <attr name="tag_shape" format="enum">
             <enum name="round_rect" value="101"/>
@@ -38,16 +39,33 @@
         <attr name="tab_view_icon_padding" format="dimension"/>
     </declare-styleable>
 
+    <!-- TagView -->
     <declare-styleable name="TagView">
-        <!-- TagView -->
+        <attr name="mode" format="enum">
+            <enum name="normal" value="201"/>
+            <enum name="check" value="204"/>
+            <enum name="icon_check_invisible" value="206"/>
+            <enum name="icon_check_change" value="207"/>
+        </attr>
+        <attr name="shape" format="enum">
+            <enum name="round_rect" value="101"/>
+            <enum name="arc" value="102"/>
+            <enum name="rect" value="103"/>
+        </attr>
+        <attr name="press_feedback" format="boolean"/>
+        <attr name="auto_check" format="boolean"/>
         <attr name="bg_color" format="color"/>
         <attr name="border_color" format="color"/>
         <attr name="text_color" format="color"/>
+        <attr name="bg_color_check" format="color"/>
+        <attr name="border_color_check" format="color"/>
+        <attr name="text_color_check" format="color"/>
         <attr name="border_width" format="dimension"/>
         <attr name="border_radius" format="dimension"/>
-        <attr name="text_size" format="float"/>
         <attr name="vertical_padding" format="dimension"/>
         <attr name="horizontal_padding" format="dimension"/>
         <attr name="icon_padding" format="dimension"/>
+        <attr name="icon" format="reference"/>
+        <attr name="icon_change" format="reference"/>
     </declare-styleable>
 </resources>
