@@ -15,8 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -25,6 +24,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.dl7.tag.drawable.RotateDrawable;
@@ -150,6 +150,9 @@ public class TagView extends TextView {
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mTagMode == MODE_EDIT) {
+                    return;
+                }
                 if (mTagClickListener != null) {
                     mTagClickListener.onTagClick(String.valueOf(mTagText), mTagMode);
                 }
@@ -159,6 +162,9 @@ public class TagView extends TextView {
         setOnLongClickListener(new OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                if (mTagMode == MODE_EDIT) {
+                    return false;
+                }
                 if (mTagLongClickListener != null) {
                     mTagLongClickListener.onTagLongClick(String.valueOf(mTagText), mTagMode);
                 }
@@ -564,6 +570,9 @@ public class TagView extends TextView {
         mIsAutoToggleCheck = autoToggleCheck;
     }
 
+    /**
+     * 切换tag选中状态
+     */
     private void _toggleTagCheckStatus() {
         if (mIsAutoToggleCheck) {
             mIsChecked = !mIsChecked;
@@ -578,6 +587,10 @@ public class TagView extends TextView {
         return mIsChecked;
     }
 
+    /**
+     * 设置选中状态
+     * @param checked
+     */
     public void setChecked(boolean checked) {
         mIsChecked = checked;
         postInvalidate();
@@ -586,6 +599,9 @@ public class TagView extends TextView {
         }
     }
 
+    /**
+     * 清除选中状态
+     */
     public void cleanTagCheckStatus() {
         mIsChecked = false;
         postInvalidate();
@@ -641,6 +657,10 @@ public class TagView extends TextView {
         return false;
     }
 
+    /**
+     * 切换Icon状态
+     * @param isChecked
+     */
     private void _switchIconStatus(boolean isChecked) {
         if (isChecked) {
             if (mTagMode == MODE_ICON_CHECK_INVISIBLE && mIsChecked) {
@@ -657,19 +677,18 @@ public class TagView extends TextView {
         }
     }
 
+    /**
+     * 初始化编辑模式
+     */
     private void _initEditMode() {
         setClickable(true);
         setFocusable(true);
         setFocusableInTouchMode(true);
         setHint("添加标签");
         mBorderPaint.setPathEffect(mPathEffect);
-        if (mBgColor == Color.WHITE) {
-            setHintTextColor(Color.parseColor("#ffaaaaaa"));
-            setOriTextColor(Color.BLACK);
-        } else {
-            setHintTextColor(Color.parseColor("#ff666666"));
-            setOriTextColor(Color.BLACK);
-        }
+        mBgColor = Color.WHITE;
+        setHintTextColor(Color.parseColor("#ffaaaaaa"));
+        setOriTextColor(Color.BLACK);
         setMovementMethod(ArrowKeyMovementMethod.getInstance());
         requestFocus();
         setOnEditorActionListener(new OnEditorActionListener() {
@@ -678,33 +697,42 @@ public class TagView extends TextView {
                 if (actionId == EditorInfo.IME_NULL
                         && (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
                         && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    if (!TextUtils.isEmpty(getText())) {
+                        ((TagLayout) getParent()).addTag(getText().toString());
+                        setText("");
+                        _closeSoftInput();
+                    }
                     return true;
                 }
                 return false;
             }
         });
-        setOnKeyListener(new OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                return false;
-            }
-        });
-        addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
 
-            }
+    /**
+     * 离开编辑模式
+     */
+    public void exitEditMode() {
+        if (mTagMode == MODE_EDIT) {
+            clearFocus();
+            setFocusable(false);
+            setFocusableInTouchMode(false);
+            setHint(null);
+            setMovementMethod(null);
+            _closeSoftInput();
+        }
+    }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
+    /**
+     * 关闭软键盘
+     */
+    private void _closeSoftInput() {
+        InputMethodManager inputMethodManager = (InputMethodManager) getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        //如果软键盘已经开启
+        if (inputMethodManager.isActive()) {
+            inputMethodManager.hideSoftInputFromWindow(getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
     }
 
     @IntDef({SHAPE_ROUND_RECT, SHAPE_ARC, SHAPE_RECT})

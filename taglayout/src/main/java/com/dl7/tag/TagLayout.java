@@ -519,7 +519,7 @@ public class TagLayout extends ViewGroup {
      * @param text tag content
      */
     public void addTag(String text) {
-        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
             addView(_initTagView(text, TagView.MODE_NORMAL), getChildCount() - 1);
         } else {
             addView(_initTagView(text, mTagMode));
@@ -533,14 +533,14 @@ public class TagLayout extends ViewGroup {
      */
     public void addTagWithIcon(String text, int iconResId) {
         TagView tagView;
-        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
             tagView = _initTagView(text, TagView.MODE_NORMAL);
         } else {
             tagView = _initTagView(text, mTagMode);
         }
         tagView.setIconRes(iconResId);
         tagView.setCompoundDrawablePadding(mIconPadding);
-        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
             addView(tagView, getChildCount() - 1);
         } else {
             addView(tagView);
@@ -571,7 +571,7 @@ public class TagLayout extends ViewGroup {
      * clean Tags
      */
     public void cleanTags() {
-        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
             removeViews(0, getChildCount() - 1);
             mTagViews.clear();
             mCheckSparseArray.clear();
@@ -601,7 +601,7 @@ public class TagLayout extends ViewGroup {
     public void updateTags(String... textList) {
         int startPos = 0;
         int minSize;
-        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
             startPos = 1;
             minSize = Math.min(textList.length, mTagViews.size() - 1);
         } else {
@@ -611,8 +611,12 @@ public class TagLayout extends ViewGroup {
             mTagViews.get(i + startPos).setTagText(textList[i]);
         }
         if (mEnableRandomColor) {
-            for (TagView tagView : mTagViews) {
-                _setTagRandomColors(tagView);
+            startPos = 0;
+            if (mTagMode == TagView.MODE_EDIT) {
+                startPos = 1;
+            }
+            for (int i = startPos; i < mTagViews.size(); i++) {
+                _setTagRandomColors(mTagViews.get(i));
             }
             postInvalidate();
         }
@@ -641,6 +645,30 @@ public class TagLayout extends ViewGroup {
                 deleteTag(mCheckSparseArray.keyAt(i));
                 mCheckSparseArray.delete(mCheckSparseArray.keyAt(i));
             }
+        }
+    }
+
+    /**
+     * exit edit mode
+     */
+    public void exitEditMode() {
+        if (mTagMode == TagView.MODE_EDIT) {
+            if (mFitTagView != null) {
+                mFitTagView.exitEditMode();
+                removeViewAt(getChildCount() - 1);
+                mFitTagView = null;
+            }
+        }
+    }
+
+    /**
+     * entry edit mode
+     */
+    public void entryEditMode() {
+        if (mTagMode == TagView.MODE_NORMAL || mTagMode == TagView.MODE_EDIT) {
+            mTagMode = TagView.MODE_EDIT;
+            mFitTagView = _initTagView("", TagView.MODE_EDIT);
+            addView(mFitTagView);
         }
     }
 }

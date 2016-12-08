@@ -41,13 +41,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                mTagGroup.addTag(mTagWords[random.nextInt(mTagWords.length)]);
+//                mTagGroup.addTag(mTagWords[random.nextInt(mTagWords.length)]);
+                mTagGroup.entryEditMode();
             }
         });
         mBtnClean.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mTagGroup.cleanTags();
+//                mTagGroup.cleanTags();
+                mTagGroup.exitEditMode();
             }
         });
 //        mTagGroup.setPressFeedback(true);
@@ -59,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 //        mTagGroup.setBorderColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
 //        mTagGroup.setBorderWidth(1);
         mTagGroup.setTags(mTagWords);
-        mTagGroup.setTagShape(TagView.SHAPE_ARC);
+//        mTagGroup.setTagShape(TagView.SHAPE_ARC);
 //        mTagGroup.setTagTextColor(Color.RED);
 //        mTagGroup.addTagWithIcon("更多", R.mipmap.ic_home_more_press);
         mTagGroup.setTagClickListener(new TagView.OnTagClickListener() {
