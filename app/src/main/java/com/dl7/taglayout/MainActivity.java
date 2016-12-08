@@ -52,12 +52,12 @@ public class MainActivity extends AppCompatActivity {
                 mTagGroup.cleanTags();
             }
         });
-//        mTagGroup.setPressFeedback(true);
-//        mTagGroup.setEnableRandomColor(true);
-//        mTagGroup.setFitTagNum(3);
-//        mTagGroup.setTagBgColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
-//        mTagGroup.setTagBorderColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-//        mTagGroup.setBgColor(ContextCompat.getColor(this, android.R.color.white));
+        mTagGroup.setPressFeedback(true);
+        mTagGroup.setEnableRandomColor(true);
+        mTagGroup.setFitTagNum(3);
+        mTagGroup.setTagBgColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
+        mTagGroup.setTagBorderColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+        mTagGroup.setBgColor(ContextCompat.getColor(this, android.R.color.white));
         mTagGroup.setBorderColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
         mTagGroup.setBorderWidth(1);
         mTagGroup.setTags(mTagWords);
@@ -79,6 +79,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTagCheck(String text, boolean isChecked) {
                 Log.e("MainActivity", text + " - " + isChecked);
+            }
+        });
+
+
+        final TagView tagView = (TagView) findViewById(R.id.tag_view);
+        tagView.setTagClickListener(new TagView.OnTagClickListener() {
+            @Override
+            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+                tagView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (tagView.isChecked()) {
+                            tagView.setTagText("标签关注");
+                            tagView.setChecked(false);
+                        } else {
+                            tagView.setTagText("取消关注");
+                            tagView.setChecked(true);
+                        }
+                    }
+                }, 2000);
             }
         });
     }

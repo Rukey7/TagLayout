@@ -110,7 +110,7 @@ public class TagView extends TextView {
 
                 mBgColor = a.getColor(R.styleable.TagView_bg_color, Color.WHITE);
                 mBorderColor = a.getColor(R.styleable.TagView_border_color, Color.parseColor("#ff333333"));
-                mTextColor = a.getColor(R.styleable.TagView_text_color, Color.parseColor("#ff666666"));
+                mTextColor = a.getColor(R.styleable.TagView_text_color, Color.WHITE);
                 if (mIsPressFeedback) {
                     mBgColorChecked = a.getColor(R.styleable.TagView_bg_color_check, mTextColor);
                     mBorderColorChecked = a.getColor(R.styleable.TagView_border_color_check, mTextColor);
@@ -132,6 +132,8 @@ public class TagView extends TextView {
             }
         }
         setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
+        setCompoundDrawablePadding(mIconPadding);
+        setOriTextColor(mTextColor);
 
         setOnClickListener(new OnClickListener() {
             @Override
@@ -173,17 +175,6 @@ public class TagView extends TextView {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             _initIcon(INVALID_VALUE);
         }
-//        if (fitTagNum == INVALID_VALUE) {
-//            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        } else {
-//            int availableWidth = ((TagLayout) getParent()).getAvailableWidth();
-//            int horizontalInterval = ((TagLayout) getParent()).getHorizontalInterval();
-//            int width = (availableWidth - (fitTagNum - 1) * horizontalInterval) / fitTagNum;
-//            int fitWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
-//            super.onMeasure(fitWidthSpec, heightMeasureSpec);
-//            mFitWidth = width;
-//        }
-//        _adjustText();
     }
 
     @Override
@@ -210,14 +201,6 @@ public class TagView extends TextView {
         }
         // 设置icon颜色
         _setIconAndTextColor(isChecked, color);
-//        if (mIsTagPress || mIsChecked) {
-//            // 设置icon颜色
-//            _setIconAndTextColor(isCheck, mTextColorChecked);
-//        } else {
-//            _setIconAndTextColor(isCheck, mTextColor);
-//        }
-        // 是否进行按压反馈处理
-//        if (mIsPressFeedback) {
         // 绘制背景
         mPaint.setStyle(Paint.Style.FILL);
         if (isChecked) {
@@ -235,19 +218,6 @@ public class TagView extends TextView {
             mPaint.setColor(mBorderColor);
         }
         canvas.drawRoundRect(mRect, radius, radius, mPaint);
-//        } else {
-//            // 绘制背景
-//            mPaint.setStyle(Paint.Style.FILL);
-//            mPaint.setColor(mBgColor);
-//            canvas.drawRoundRect(mRect, radius, radius, mPaint);
-//            // 绘制边框
-//            mPaint.setStyle(Paint.Style.STROKE);
-//            mPaint.setStrokeWidth(mBorderWidth);
-//            mPaint.setColor(mBorderColor);
-//            canvas.drawRoundRect(mRect, radius, radius, mPaint);
-//        }
-        // 设置icon颜色
-//        _setIconAndTextColor(getCurrentTextColor());
 
         super.onDraw(canvas);
     }
@@ -341,9 +311,9 @@ public class TagView extends TextView {
         return mTextColor;
     }
 
-    public void setOriTextColor(int oriTextColor) {
-        mTextColor = oriTextColor;
-        _setIconAndTextColor(mIsChecked, mTextColor);
+    public void setOriTextColor(int textColor) {
+        mTextColor = textColor;
+        setTextColor(textColor);
     }
 
     public int getBgColorChecked() {
@@ -525,9 +495,10 @@ public class TagView extends TextView {
     private boolean mIsChecked = false;
     // 是否自动切换选中状态，不使能可以灵活地选择切换，通过用于等待网络返回再做切换
     private boolean mIsAutoToggleCheck = false;
-    // 图标颜色
-    private int mIconColor = INVALID_VALUE;
+    // 是否初始化Icon
     private boolean mIsInitIcon = false;
+    // 保存选中状态
+    private boolean mSaveChecked = false;
 
 
     public int getTagShape() {
@@ -601,10 +572,11 @@ public class TagView extends TextView {
      * @param textWidth
      */
     private void _initIcon(float textWidth) {
-        if (!mIsInitIcon && mTagMode == MODE_CHANGE || mDecorateIcon != null) {
+        if (!mIsInitIcon && (mTagMode == MODE_CHANGE || mDecorateIcon != null)) {
             int size = MeasureUtils.getFontHeight(getTextSize());
             int left = 0;
             if (textWidth == INVALID_VALUE) {
+                mPaint.setTextSize(getTextSize());
                 textWidth = mPaint.measureText(String.valueOf(mTagText));
                 left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - mIconPadding / 2;
             } else if (mFitWidth != INVALID_VALUE) {
@@ -632,35 +604,28 @@ public class TagView extends TextView {
      *
      * @param color
      */
-    private void _setIconAndTextColor(boolean isChecked, int color) {
-        if (mIconColor != color) {
-            mIconColor = color;
+    private boolean _setIconAndTextColor(boolean isChecked, int color) {
+        if (mSaveChecked != isChecked) {
+            mSaveChecked = isChecked;
             setTextColor(color);
             if (mDecorateIcon != null) {
                 _switchIconStatus(isChecked);
             }
+            return true;
         }
-//        if (mDecorateIcon != null && mIconColor != color) {
-//            mIconColor = color;
-//            setTextColor(color);
-//            mDecorateIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-//        } else {
-//            setTextColor(color);
-//        }
+        return false;
     }
 
     private void _switchIconStatus(boolean isChecked) {
         if (isChecked) {
-            if (mTagMode == MODE_ICON_CHECK_INVISIBLE) {
+            if (mTagMode == MODE_ICON_CHECK_INVISIBLE && mIsChecked) {
                 setCompoundDrawables(null, null, null, null);
-                setCompoundDrawablePadding(0);
-            } else if (mTagMode == MODE_ICON_CHECK_CHANGE || mIconCheckChange != null) {
+            } else if (mTagMode == MODE_ICON_CHECK_CHANGE && mIconCheckChange != null && mIsChecked) {
                 setCompoundDrawables(mIconCheckChange, null, null, null);
             } else {
                 mDecorateIcon.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
             }
-        } else if (mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE) {
-            setCompoundDrawablePadding(mIconPadding);
+        } else if (mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE && !mIsChecked) {
             setCompoundDrawables(mDecorateIcon, null, null, null);
         } else {
             mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
