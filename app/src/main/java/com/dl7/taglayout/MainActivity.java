@@ -80,25 +80,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final TagView tagView = (TagView) findViewById(R.id.tag_view);
-        tagView.setTagClickListener(new TagView.OnTagClickListener() {
-            @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
-                Log.e("MainActivity", mTagGroup.getCheckedTags().toString());
-                mTagGroup.deleteCheckedTags();
-//                tagView.postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if (tagView.isChecked()) {
-//                            tagView.setTagText("标签关注");
-//                            tagView.setChecked(false);
-//                        } else {
-//                            tagView.setTagText("取消关注");
-//                            tagView.setChecked(true);
-//                        }
-//                    }
-//                }, 2000);
-            }
-        });
+//        final TagView tagView = (TagView) findViewById(R.id.tag_view);
+//        tagView.setTagClickListener(new TagView.OnTagClickListener() {
+//            @Override
+//            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+//                Log.e("MainActivity", mTagGroup.getCheckedTags().toString());
+//                mTagGroup.deleteCheckedTags();
+////                tagView.postDelayed(new Runnable() {
+////                    @Override
+////                    public void run() {
+////                        if (tagView.isChecked()) {
+////                            tagView.setTagText("标签关注");
+////                            tagView.setChecked(false);
+////                        } else {
+////                            tagView.setTagText("取消关注");
+////                            tagView.setChecked(true);
+////                        }
+////                    }
+////                }, 2000);
+//            }
+//        });
     }
 }

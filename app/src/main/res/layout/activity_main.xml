@@ -9,27 +9,9 @@
 
     <com.dl7.tag.TagLayout
         android:id="@+id/tag_group"
+        style="@style/TagLayout.RandomColor"
+        app:tag_mode="edit"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/TagLayout.RandomColor.Change"
-        app:tab_layout_fit_num="4"/>
-
-    <com.dl7.tag.TagView
-        android:id="@+id/tag_view"
-        android:layout_width="100dp"
-        android:text="标签关注"
-        android:layout_centerInParent="true"
-        app:mode="icon_check_change"
-        app:press_feedback="true"
-        app:auto_check="true"
-        app:shape="arc"
-        app:bg_color="@android:color/holo_red_light"
-        app:bg_color_check="#88000000"
-        app:border_color="@android:color/holo_red_light"
-        app:border_color_check="@android:color/black"
-        app:text_color="@android:color/white"
-        app:icon="@mipmap/ic_add"
-        app:icon_change="@mipmap/ic_delete"
         android:layout_height="wrap_content"/>
 
     <Button

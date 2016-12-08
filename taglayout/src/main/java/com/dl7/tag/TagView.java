@@ -6,18 +6,25 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.graphics.PathEffect;
 import android.graphics.PorterDuff;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.text.method.ArrowKeyMovementMethod;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
 import com.dl7.tag.drawable.RotateDrawable;
@@ -39,6 +46,7 @@ public class TagView extends TextView {
     public final static int INVALID_VALUE = -1;
 
     private Paint mPaint;
+    private Paint mBorderPaint;
     // 背景色
     private int mBgColor;
     // 边框颜色
@@ -92,6 +100,9 @@ public class TagView extends TextView {
     private void _init(Context context, AttributeSet attrs) {
         mRect = new RectF();
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPaint.setStyle(Paint.Style.FILL);
+        mBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mBorderPaint.setStyle(Paint.Style.STROKE);
         mTagText = getText();
         // 设置字体占中
         setGravity(Gravity.CENTER);
@@ -110,7 +121,7 @@ public class TagView extends TextView {
 
                 mBgColor = a.getColor(R.styleable.TagView_bg_color, Color.WHITE);
                 mBorderColor = a.getColor(R.styleable.TagView_border_color, Color.parseColor("#ff333333"));
-                mTextColor = a.getColor(R.styleable.TagView_text_color, Color.WHITE);
+                mTextColor = a.getColor(R.styleable.TagView_text_color, Color.parseColor("#ff666666"));
                 if (mIsPressFeedback) {
                     mBgColorChecked = a.getColor(R.styleable.TagView_bg_color_check, mTextColor);
                     mBorderColorChecked = a.getColor(R.styleable.TagView_border_color_check, mTextColor);
@@ -121,6 +132,7 @@ public class TagView extends TextView {
                     mTextColorChecked = a.getColor(R.styleable.TagView_text_color_check, mTextColor);
                 }
                 mBorderWidth = a.getDimension(R.styleable.TagView_border_width, MeasureUtils.dp2px(context, 0.5f));
+                mBorderPaint.setStrokeWidth(mBorderWidth);
                 mRadius = a.getDimension(R.styleable.TagView_border_radius, MeasureUtils.dp2px(context, 5f));
                 mHorizontalPadding = (int) a.getDimension(R.styleable.TagView_horizontal_padding, MeasureUtils.dp2px(context, 5f));
                 mVerticalPadding = (int) a.getDimension(R.styleable.TagView_vertical_padding, MeasureUtils.dp2px(context, 5f));
@@ -150,9 +162,14 @@ public class TagView extends TextView {
                 if (mTagLongClickListener != null) {
                     mTagLongClickListener.onTagLongClick(String.valueOf(mTagText), mTagMode);
                 }
-                return true;
+                return mTagMode != MODE_EDIT;
             }
         });
+    }
+
+    @Override
+    protected boolean getDefaultEditable() {
+        return true;
     }
 
     @Override
@@ -202,7 +219,7 @@ public class TagView extends TextView {
         // 设置icon颜色
         _setIconAndTextColor(isChecked, color);
         // 绘制背景
-        mPaint.setStyle(Paint.Style.FILL);
+//        mPaint.setStyle(Paint.Style.FILL);
         if (isChecked) {
             mPaint.setColor(mBgColorChecked);
         } else {
@@ -210,14 +227,14 @@ public class TagView extends TextView {
         }
         canvas.drawRoundRect(mRect, radius, radius, mPaint);
         // 绘制边框
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(mBorderWidth);
+//        mPaint.setStyle(Paint.Style.STROKE);
+//        mBorderPaint.setStrokeWidth(mBorderWidth);
         if (isChecked) {
-            mPaint.setColor(mBorderColorChecked);
+            mBorderPaint.setColor(mBorderColorChecked);
         } else {
-            mPaint.setColor(mBorderColor);
+            mBorderPaint.setColor(mBorderColor);
         }
-        canvas.drawRoundRect(mRect, radius, radius, mPaint);
+        canvas.drawRoundRect(mRect, radius, radius, mBorderPaint);
 
         super.onDraw(canvas);
     }
@@ -349,6 +366,7 @@ public class TagView extends TextView {
 
     public void setBorderWidth(float borderWidth) {
         mBorderWidth = borderWidth;
+        mBorderPaint.setStrokeWidth(mBorderWidth);
     }
 
     public float getRadius() {
@@ -418,7 +436,7 @@ public class TagView extends TextView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!mIsPressFeedback) {
+        if (!mIsPressFeedback || mTagMode == MODE_EDIT) {
             return super.onTouchEvent(event);
         }
         switch (MotionEventCompat.getActionMasked(event)) {
@@ -502,6 +520,8 @@ public class TagView extends TextView {
     private boolean mIsInitIcon = false;
     // 保存选中状态
     private boolean mSaveChecked = false;
+    // 虚线路径
+    private PathEffect mPathEffect = new DashPathEffect(new float[]{10, 5}, 0);
 
 
     public int getTagShape() {
@@ -521,6 +541,8 @@ public class TagView extends TextView {
         if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE) {
             setPressFeedback(true);
             mIsAutoToggleCheck = true;
+        } else if (mTagMode == MODE_EDIT) {
+            _initEditMode();
         }
     }
 
@@ -608,7 +630,7 @@ public class TagView extends TextView {
      * @param color
      */
     private boolean _setIconAndTextColor(boolean isChecked, int color) {
-        if (mSaveChecked != isChecked ||  mSaveChecked != mIsChecked) {
+        if (mSaveChecked != isChecked || mSaveChecked != mIsChecked) {
             mSaveChecked = isChecked;
             setTextColor(color);
             if (mDecorateIcon != null) {
@@ -633,6 +655,56 @@ public class TagView extends TextView {
         } else {
             mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
         }
+    }
+
+    private void _initEditMode() {
+        setClickable(true);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        setHint("添加标签");
+        mBorderPaint.setPathEffect(mPathEffect);
+        if (mBgColor == Color.WHITE) {
+            setHintTextColor(Color.parseColor("#ffaaaaaa"));
+            setOriTextColor(Color.BLACK);
+        } else {
+            setHintTextColor(Color.parseColor("#ff666666"));
+            setOriTextColor(Color.BLACK);
+        }
+        setMovementMethod(ArrowKeyMovementMethod.getInstance());
+        requestFocus();
+        setOnEditorActionListener(new OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_NULL
+                        && (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                        && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    return true;
+                }
+                return false;
+            }
+        });
+        setOnKeyListener(new OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                return false;
+            }
+        });
+        addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
     @IntDef({SHAPE_ROUND_RECT, SHAPE_ARC, SHAPE_RECT})

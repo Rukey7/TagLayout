@@ -132,6 +132,9 @@ public class TagLayout extends ViewGroup {
         if (mTagMode == TagView.MODE_CHANGE) {
             mFitTagView = _initTagView("换一换", TagView.MODE_CHANGE);
             addView(mFitTagView);
+        } else if (mTagMode == TagView.MODE_EDIT) {
+            mFitTagView = _initTagView("", TagView.MODE_EDIT);
+            addView(mFitTagView);
         } else if (mTagMode == TagView.MODE_SINGLE_CHOICE || mTagMode == TagView.MODE_MULTI_CHOICE) {
             mInsideTagCheckListener = new TagView.OnTagCheckListener() {
                 @Override
@@ -516,7 +519,7 @@ public class TagLayout extends ViewGroup {
      * @param text tag content
      */
     public void addTag(String text) {
-        if (mTagMode == TagView.MODE_CHANGE) {
+        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
             addView(_initTagView(text, TagView.MODE_NORMAL), getChildCount() - 1);
         } else {
             addView(_initTagView(text, mTagMode));
@@ -530,14 +533,14 @@ public class TagLayout extends ViewGroup {
      */
     public void addTagWithIcon(String text, int iconResId) {
         TagView tagView;
-        if (mTagMode == TagView.MODE_CHANGE) {
+        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
             tagView = _initTagView(text, TagView.MODE_NORMAL);
         } else {
             tagView = _initTagView(text, mTagMode);
         }
         tagView.setIconRes(iconResId);
         tagView.setCompoundDrawablePadding(mIconPadding);
-        if (mTagMode == TagView.MODE_CHANGE) {
+        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
             addView(tagView, getChildCount() - 1);
         } else {
             addView(tagView);
@@ -568,9 +571,10 @@ public class TagLayout extends ViewGroup {
      * clean Tags
      */
     public void cleanTags() {
-        if (mTagMode == TagView.MODE_CHANGE) {
+        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
             removeViews(0, getChildCount() - 1);
             mTagViews.clear();
+            mCheckSparseArray.clear();
             mTagViews.add(mFitTagView);
         } else {
             removeAllViews();
@@ -597,7 +601,7 @@ public class TagLayout extends ViewGroup {
     public void updateTags(String... textList) {
         int startPos = 0;
         int minSize;
-        if (mTagMode == TagView.MODE_CHANGE) {
+        if (mTagMode == TagView.MODE_CHANGE || mTagMode == TagView.MODE_EDIT) {
             startPos = 1;
             minSize = Math.min(textList.length, mTagViews.size() - 1);
         } else {
