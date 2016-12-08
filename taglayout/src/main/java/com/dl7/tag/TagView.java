@@ -314,6 +314,9 @@ public class TagView extends TextView {
     public void setOriTextColor(int textColor) {
         mTextColor = textColor;
         setTextColor(textColor);
+        if (mDecorateIcon != null) {
+            mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
+        }
     }
 
     public int getBgColorChecked() {

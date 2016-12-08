@@ -376,9 +376,6 @@ public class TagLayout extends ViewGroup {
 
     public void setTagBgColor(int tagBgColor) {
         mTagBgColor = tagBgColor;
-        if (mFitTagView != null) {
-            mFitTagView.setBgColor(mTagBgColor);
-        }
     }
 
     public int getTagBorderColor() {
@@ -387,9 +384,6 @@ public class TagLayout extends ViewGroup {
 
     public void setTagBorderColor(int tagBorderColor) {
         mTagBorderColor = tagBorderColor;
-        if (mFitTagView != null) {
-            mFitTagView.setBorderColor(mTagBorderColor);
-        }
     }
 
     public int getTagTextColor() {
@@ -551,6 +545,15 @@ public class TagLayout extends ViewGroup {
     }
 
     /**
+     * delete tag
+     * @param position
+     */
+    public void deleteTag(int position) {
+        removeViewAt(position);
+        mTagViews.remove(position);
+    }
+
+    /**
      * add Tags
      *
      * @param textList tag list
@@ -608,6 +611,32 @@ public class TagLayout extends ViewGroup {
                 _setTagRandomColors(tagView);
             }
             postInvalidate();
+        }
+    }
+
+    /**
+     * get checked tags
+     * @return
+     */
+    public List<String> getCheckedTags() {
+        List<String> checkTags = new ArrayList<>();
+        for (int i = 0; i < mCheckSparseArray.size(); i++) {
+            if (mCheckSparseArray.valueAt(i)) {
+                checkTags.add(mTagViews.get(mCheckSparseArray.keyAt(i)).getTagText().toString());
+            }
+        }
+        return checkTags;
+    }
+
+    /**
+     * delete checked tags
+     */
+    public void deleteCheckedTags() {
+        for (int i = mCheckSparseArray.size() - 1; i >= 0; i--) {
+            if (mCheckSparseArray.valueAt(i)) {
+                deleteTag(mCheckSparseArray.keyAt(i));
+                mCheckSparseArray.delete(mCheckSparseArray.keyAt(i));
+            }
         }
     }
 }
