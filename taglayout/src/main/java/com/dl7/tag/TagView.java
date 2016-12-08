@@ -605,7 +605,7 @@ public class TagView extends TextView {
      * @param color
      */
     private boolean _setIconAndTextColor(boolean isChecked, int color) {
-        if (mSaveChecked != isChecked) {
+        if (mSaveChecked != isChecked ||  mSaveChecked != mIsChecked) {
             mSaveChecked = isChecked;
             setTextColor(color);
             if (mDecorateIcon != null) {

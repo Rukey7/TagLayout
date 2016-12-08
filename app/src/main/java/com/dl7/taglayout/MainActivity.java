@@ -87,18 +87,18 @@ public class MainActivity extends AppCompatActivity {
         tagView.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(String text, @TagView.TagMode int tagMode) {
-                tagView.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (tagView.isChecked()) {
-                            tagView.setTagText("标签关注");
-                            tagView.setChecked(false);
-                        } else {
-                            tagView.setTagText("取消关注");
-                            tagView.setChecked(true);
-                        }
-                    }
-                }, 2000);
+//                tagView.postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if (tagView.isChecked()) {
+//                            tagView.setTagText("标签关注");
+//                            tagView.setChecked(false);
+//                        } else {
+//                            tagView.setTagText("取消关注");
+//                            tagView.setChecked(true);
+//                        }
+//                    }
+//                }, 2000);
             }
         });
     }
