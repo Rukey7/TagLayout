@@ -10,7 +10,7 @@ import com.dl7.tag.TagView;
 public class MainActivity extends AppCompatActivity {
 
     private final String[] mTagWords = new String[]{
-            "测试不同边框形状", "Android", "我是TagView",
+            "不同边框形状的标签", "单选和多选标签", "可编辑的标签", "动画效果的换一换标签"
     };
     private TagLayout mTagLayout;
 
@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(MainActivity.this, TagShapeActivity.class));
                 } else if (mTagWords[1].equals(text)) {
                     startActivity(new Intent(MainActivity.this, TagChoiceActivity.class));
+                } else if (mTagWords[2].equals(text)) {
+                    startActivity(new Intent(MainActivity.this, TagEditActivity.class));
                 }
             }
         });

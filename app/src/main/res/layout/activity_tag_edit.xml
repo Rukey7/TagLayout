@@ -20,7 +20,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="单选(彩色)(注意：因为会生成重复的标签所以选中和删除有的会不正常):"
+                android:text="编辑(彩色):"
                 android:layout_margin="3dp"
                 android:layout_height="wrap_content"/>
 
@@ -33,14 +33,13 @@
 
             <com.dl7.tag.TagLayout
                 android:id="@+id/tag_layout_1"
-                style="@style/TagLayout.SingleChoice"
-                app:tag_random_color="true"
+                style="@style/TagLayout.RandomColor.Edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="多选(彩色布局):"
+                android:text="编辑(自定义颜色、按压效果):"
                 android:layout_margin="3dp"
                 android:layout_height="wrap_content"/>
 
@@ -53,15 +52,17 @@
 
             <com.dl7.tag.TagLayout
                 android:id="@+id/tag_layout_2"
-                style="@style/TagLayout.MultiChoice"
-                app:tag_layout_bg_color="@android:color/holo_orange_light"
-                app:tag_layout_border_color="@android:color/holo_orange_dark"
+                style="@style/TagLayout.Edit"
+                app:tag_press_feedback="true"
+                app:tag_view_bg_color="@android:color/white"
+                app:tag_view_border_color="@android:color/holo_red_dark"
+                app:tag_view_text_color="@android:color/holo_red_light"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="多选(彩色、一行固定4个):"
+                android:text="编辑:"
                 android:layout_margin="3dp"
                 android:layout_height="wrap_content"/>
 
@@ -74,9 +75,7 @@
 
             <com.dl7.tag.TagLayout
                 android:id="@+id/tag_layout_3"
-                style="@style/TagLayout.MultiChoice"
-                app:tag_random_color="true"
-                app:tag_layout_fit_num="4"
+                style="@style/TagLayout.Edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -95,10 +94,10 @@
 
         <com.dl7.tag.TagView
             android:id="@+id/tag_del"
-            android:layout_width="wrap_content"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:text="删除选中标签"
+            android:text="删除"
             app:border_color="@android:color/holo_red_light"
             app:icon="@mipmap/ic_delete"
             app:press_feedback="true"
@@ -106,7 +105,7 @@
 
         <com.dl7.tag.TagView
             android:id="@+id/tag_add"
-            android:layout_width="wrap_content"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
             android:layout_marginRight="20dp"

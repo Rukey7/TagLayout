@@ -8,7 +8,7 @@ import com.dl7.tag.TagView;
 import com.dl7.taglayout.utils.TagWordFactory;
 import com.dl7.taglayout.utils.ToastUtils;
 
-public class TagShapeActivity extends AppCompatActivity implements TagView.OnTagClickListener, TagView.OnTagLongClickListener {
+public class TagEditActivity extends AppCompatActivity implements TagView.OnTagClickListener, TagView.OnTagLongClickListener {
 
     private TagLayout mTagLayout1;
     private TagLayout mTagLayout2;
@@ -19,7 +19,7 @@ public class TagShapeActivity extends AppCompatActivity implements TagView.OnTag
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tag_shape);
+        setContentView(R.layout.activity_tag_edit);
         initView();
     }
 

@@ -11,6 +11,8 @@ import com.dl7.taglayout.utils.ToastUtils;
 public class TagChoiceActivity extends AppCompatActivity implements TagView.OnTagClickListener, TagView.OnTagLongClickListener {
 
     private TagLayout mTagLayout1;
+    private TagLayout mTagLayout2;
+    private TagLayout mTagLayout3;
     private TagView mTagDel;
     private TagView mTagAdd;
 
@@ -23,23 +25,32 @@ public class TagChoiceActivity extends AppCompatActivity implements TagView.OnTa
 
     private void initView() {
         mTagLayout1 = (TagLayout) findViewById(R.id.tag_layout_1);
+        mTagLayout2 = (TagLayout) findViewById(R.id.tag_layout_2);
+        mTagLayout3 = (TagLayout) findViewById(R.id.tag_layout_3);
         mTagDel = (TagView) findViewById(R.id.tag_del);
         mTagAdd = (TagView) findViewById(R.id.tag_add);
-        mTagLayout1.setTags(TagWordFactory.TAG_WORD);
         mTagLayout1.setTagClickListener(this);
         mTagLayout1.setTagLongClickListener(this);
+        mTagLayout2.setTagClickListener(this);
+        mTagLayout2.setTagLongClickListener(this);
+        mTagLayout3.setTagClickListener(this);
+        mTagLayout3.setTagLongClickListener(this);
 
         mTagAdd.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(String text, @TagView.TagMode int tagMode) {
                 String word = TagWordFactory.provideTagWord();
                 mTagLayout1.addTag(word);
+                mTagLayout2.addTag(word);
+                mTagLayout3.addTag(word);
             }
         });
         mTagDel.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(String text, @TagView.TagMode int tagMode) {
-                mTagLayout1.deleteTag(0);
+                mTagLayout1.deleteCheckedTags();
+                mTagLayout2.deleteCheckedTags();
+                mTagLayout3.deleteCheckedTags();
             }
         });
     }

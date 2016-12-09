@@ -50,4 +50,12 @@
     <style name="TagLayout.MultiChoice">
         <item name="tag_mode">multi_choice</item>
     </style>
+
+    <style name="TagLayout.Edit">
+        <item name="tag_mode">edit</item>
+    </style>
+
+    <style name="TagLayout.RandomColor.Edit">
+        <item name="tag_mode">edit</item>
+    </style>
 </resources>
