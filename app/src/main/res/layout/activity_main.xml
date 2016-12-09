@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,25 +8,13 @@
     tools:context="com.dl7.taglayout.MainActivity">
 
     <com.dl7.tag.TagLayout
-        android:id="@+id/tag_group"
+        android:id="@+id/tag_layout"
         style="@style/TagLayout.RandomColor"
-        app:tag_mode="edit"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btn_add"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:text="Add"/>
-
-    <Button
-        android:id="@+id/btn_clean"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:text="Clean"/>
-</RelativeLayout>
+        app:tag_layout_fit_num="1"
+        app:tag_layout_horizontal_interval="20dp"
+        app:tag_layout_vertical_interval="10dp"
+        app:tag_view_text_size="16"
+        app:tag_press_feedback="true"/>
+</FrameLayout>

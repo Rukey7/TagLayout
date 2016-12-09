@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.util.SparseBooleanArray;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.dl7.tag.utils.ColorsFactory;
 import com.dl7.tag.utils.MeasureUtils;
@@ -96,39 +97,39 @@ public class TagLayout extends ViewGroup {
             mTagShape = a.getInteger(R.styleable.TagLayout_tag_shape, TagView.SHAPE_ROUND_RECT);
             mIsPressFeedback = a.getBoolean(R.styleable.TagLayout_tag_press_feedback, false);
             mEnableRandomColor = a.getBoolean(R.styleable.TagLayout_tag_random_color, false);
-            mFitTagNum = a.getInteger(R.styleable.TagLayout_tab_layout_fit_num, TagView.INVALID_VALUE);
-            mBgColor = a.getColor(R.styleable.TagLayout_tab_layout_bg_color, Color.WHITE);
-            mBorderColor = a.getColor(R.styleable.TagLayout_tab_layout_border_color, Color.WHITE);
-            mBorderWidth = a.getDimension(R.styleable.TagLayout_tab_layout_border_width, MeasureUtils.dp2px(context, 0.5f));
-            mRadius = a.getDimension(R.styleable.TagLayout_tab_layout_border_radius, MeasureUtils.dp2px(context, 5f));
-            mHorizontalInterval = (int) a.getDimension(R.styleable.TagLayout_tab_layout_horizontal_interval, MeasureUtils.dp2px(context, 5f));
-            mVerticalInterval = (int) a.getDimension(R.styleable.TagLayout_tab_layout_vertical_interval, MeasureUtils.dp2px(context, 5f));
+            mFitTagNum = a.getInteger(R.styleable.TagLayout_tag_layout_fit_num, TagView.INVALID_VALUE);
+            mBgColor = a.getColor(R.styleable.TagLayout_tag_layout_bg_color, Color.WHITE);
+            mBorderColor = a.getColor(R.styleable.TagLayout_tag_layout_border_color, Color.WHITE);
+            mBorderWidth = a.getDimension(R.styleable.TagLayout_tag_layout_border_width, MeasureUtils.dp2px(context, 0.5f));
+            mRadius = a.getDimension(R.styleable.TagLayout_tag_layout_border_radius, MeasureUtils.dp2px(context, 5f));
+            mHorizontalInterval = (int) a.getDimension(R.styleable.TagLayout_tag_layout_horizontal_interval, MeasureUtils.dp2px(context, 5f));
+            mVerticalInterval = (int) a.getDimension(R.styleable.TagLayout_tag_layout_vertical_interval, MeasureUtils.dp2px(context, 5f));
 
-            mTagBgColor = a.getColor(R.styleable.TagLayout_tab_view_bg_color, Color.WHITE);
-            mTagBorderColor = a.getColor(R.styleable.TagLayout_tab_view_border_color, Color.parseColor("#ff333333"));
-            mTagTextColor = a.getColor(R.styleable.TagLayout_tab_view_text_color, Color.parseColor("#ff666666"));
+            mTagBgColor = a.getColor(R.styleable.TagLayout_tag_view_bg_color, Color.WHITE);
+            mTagBorderColor = a.getColor(R.styleable.TagLayout_tag_view_border_color, Color.parseColor("#ff333333"));
+            mTagTextColor = a.getColor(R.styleable.TagLayout_tag_view_text_color, Color.parseColor("#ff666666"));
             if (mIsPressFeedback || mTagMode == TagView.MODE_SINGLE_CHOICE || mTagMode == TagView.MODE_MULTI_CHOICE) {
-                mTagBgColorCheck = a.getColor(R.styleable.TagLayout_tab_view_bg_color_check, mTagTextColor);
-                mTagBorderColorCheck = a.getColor(R.styleable.TagLayout_tab_view_border_color_check, mTagTextColor);
-                mTagTextColorCheck = a.getColor(R.styleable.TagLayout_tab_view_text_color_check, Color.WHITE);
+                mTagBgColorCheck = a.getColor(R.styleable.TagLayout_tag_view_bg_color_check, mTagTextColor);
+                mTagBorderColorCheck = a.getColor(R.styleable.TagLayout_tag_view_border_color_check, mTagTextColor);
+                mTagTextColorCheck = a.getColor(R.styleable.TagLayout_tag_view_text_color_check, Color.WHITE);
             } else {
-                mTagBgColorCheck = a.getColor(R.styleable.TagLayout_tab_view_bg_color_check, mTagBgColor);
-                mTagBorderColorCheck = a.getColor(R.styleable.TagLayout_tab_view_border_color_check, mTagBorderColor);
-                mTagTextColorCheck = a.getColor(R.styleable.TagLayout_tab_view_text_color_check, mTagTextColor);
+                mTagBgColorCheck = a.getColor(R.styleable.TagLayout_tag_view_bg_color_check, mTagBgColor);
+                mTagBorderColorCheck = a.getColor(R.styleable.TagLayout_tag_view_border_color_check, mTagBorderColor);
+                mTagTextColorCheck = a.getColor(R.styleable.TagLayout_tag_view_text_color_check, mTagTextColor);
             }
-            mTagBorderWidth = a.getDimension(R.styleable.TagLayout_tab_view_border_width, MeasureUtils.dp2px(context, 0.5f));
-            mTagTextSize = a.getFloat(R.styleable.TagLayout_tab_view_text_size, 13.0f);
-            mTagRadius = a.getDimension(R.styleable.TagLayout_tab_view_border_radius, MeasureUtils.dp2px(context, 5f));
-            mTagHorizontalPadding = (int) a.getDimension(R.styleable.TagLayout_tab_view_horizontal_padding, MeasureUtils.dp2px(context, 5f));
-            mTagVerticalPadding = (int) a.getDimension(R.styleable.TagLayout_tab_view_vertical_padding, MeasureUtils.dp2px(context, 5f));
-            mIconPadding = (int) a.getDimension(R.styleable.TagLayout_tab_view_icon_padding, MeasureUtils.dp2px(context, 3f));
+            mTagBorderWidth = a.getDimension(R.styleable.TagLayout_tag_view_border_width, MeasureUtils.dp2px(context, 0.5f));
+            mTagTextSize = a.getFloat(R.styleable.TagLayout_tag_view_text_size, 13.0f);
+            mTagRadius = a.getDimension(R.styleable.TagLayout_tag_view_border_radius, MeasureUtils.dp2px(context, 5f));
+            mTagHorizontalPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_horizontal_padding, MeasureUtils.dp2px(context, 5f));
+            mTagVerticalPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_vertical_padding, MeasureUtils.dp2px(context, 5f));
+            mIconPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_icon_padding, MeasureUtils.dp2px(context, 3f));
         } finally {
             a.recycle();
         }
         // 如果想要自己绘制内容，则必须设置这个标志位为false，否则onDraw()方法不会调用
         setWillNotDraw(false);
         setPadding(mHorizontalInterval, mVerticalInterval, mHorizontalInterval, mVerticalInterval);
-
+        // 设置对应模式
         if (mTagMode == TagView.MODE_CHANGE) {
             mFitTagView = _initTagView("换一换", TagView.MODE_CHANGE);
             addView(mFitTagView);
@@ -136,6 +137,7 @@ public class TagLayout extends ViewGroup {
             mFitTagView = _initTagView("", TagView.MODE_EDIT);
             addView(mFitTagView);
         } else if (mTagMode == TagView.MODE_SINGLE_CHOICE || mTagMode == TagView.MODE_MULTI_CHOICE) {
+            mIsPressFeedback = true;
             mInsideTagCheckListener = new TagView.OnTagCheckListener() {
                 @Override
                 public void onTagCheck(String text, boolean isChecked) {
@@ -552,6 +554,10 @@ public class TagLayout extends ViewGroup {
      * @param position
      */
     public void deleteTag(int position) {
+        if (position < 0 || position >= getChildCount()) {
+            Toast.makeText(getContext(), "Invalid position", Toast.LENGTH_SHORT).show();
+            return;
+        }
         removeViewAt(position);
         mTagViews.remove(position);
     }

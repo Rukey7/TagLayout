@@ -17,26 +17,26 @@
         <attr name="tag_random_color" format="boolean"/>
         <attr name="tag_press_feedback" format="boolean"/>
         <!-- TagLayout -->
-        <attr name="tab_layout_bg_color" format="color"/>
-        <attr name="tab_layout_border_color" format="color"/>
-        <attr name="tab_layout_border_width" format="dimension"/>
-        <attr name="tab_layout_border_radius" format="dimension"/>
-        <attr name="tab_layout_vertical_interval" format="dimension"/>
-        <attr name="tab_layout_horizontal_interval" format="dimension"/>
-        <attr name="tab_layout_fit_num" format="integer"/>
+        <attr name="tag_layout_bg_color" format="color"/>
+        <attr name="tag_layout_border_color" format="color"/>
+        <attr name="tag_layout_border_width" format="dimension"/>
+        <attr name="tag_layout_border_radius" format="dimension"/>
+        <attr name="tag_layout_vertical_interval" format="dimension"/>
+        <attr name="tag_layout_horizontal_interval" format="dimension"/>
+        <attr name="tag_layout_fit_num" format="integer"/>
         <!-- TagView -->
-        <attr name="tab_view_bg_color" format="color"/>
-        <attr name="tab_view_border_color" format="color"/>
-        <attr name="tab_view_text_color" format="color"/>
-        <attr name="tab_view_bg_color_check" format="color"/>
-        <attr name="tab_view_border_color_check" format="color"/>
-        <attr name="tab_view_text_color_check" format="color"/>
-        <attr name="tab_view_border_width" format="dimension"/>
-        <attr name="tab_view_border_radius" format="dimension"/>
-        <attr name="tab_view_text_size" format="float"/>
-        <attr name="tab_view_vertical_padding" format="dimension"/>
-        <attr name="tab_view_horizontal_padding" format="dimension"/>
-        <attr name="tab_view_icon_padding" format="dimension"/>
+        <attr name="tag_view_bg_color" format="color"/>
+        <attr name="tag_view_border_color" format="color"/>
+        <attr name="tag_view_text_color" format="color"/>
+        <attr name="tag_view_bg_color_check" format="color"/>
+        <attr name="tag_view_border_color_check" format="color"/>
+        <attr name="tag_view_text_color_check" format="color"/>
+        <attr name="tag_view_border_width" format="dimension"/>
+        <attr name="tag_view_border_radius" format="dimension"/>
+        <attr name="tag_view_text_size" format="float"/>
+        <attr name="tag_view_vertical_padding" format="dimension"/>
+        <attr name="tag_view_horizontal_padding" format="dimension"/>
+        <attr name="tag_view_icon_padding" format="dimension"/>
     </declare-styleable>
 
     <!-- TagView -->

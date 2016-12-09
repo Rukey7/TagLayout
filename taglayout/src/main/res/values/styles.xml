@@ -4,18 +4,18 @@
     <style name="TagLayout">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="tab_layout_bg_color">@android:color/white</item>
-        <item name="tab_layout_border_color">@android:color/white</item>
-        <item name="tab_layout_border_width">1dp</item>
-        <item name="tab_layout_border_radius">5dp</item>
-        <item name="tab_layout_vertical_interval">5dp</item>
-        <item name="tab_layout_horizontal_interval">5dp</item>
-        <item name="tab_view_bg_color">#ffffffff</item>
-        <item name="tab_view_border_color">#ff333333</item>
-        <item name="tab_view_border_width">1dp</item>
-        <item name="tab_view_border_radius">5dp</item>
-        <item name="tab_view_vertical_padding">5dp</item>
-        <item name="tab_view_horizontal_padding">5dp</item>
+        <item name="tag_layout_bg_color">@android:color/white</item>
+        <item name="tag_layout_border_color">@android:color/white</item>
+        <item name="tag_layout_border_width">1dp</item>
+        <item name="tag_layout_border_radius">5dp</item>
+        <item name="tag_layout_vertical_interval">5dp</item>
+        <item name="tag_layout_horizontal_interval">5dp</item>
+        <item name="tag_view_bg_color">#ffffffff</item>
+        <item name="tag_view_border_color">#ff333333</item>
+        <item name="tag_view_border_width">1dp</item>
+        <item name="tag_view_border_radius">5dp</item>
+        <item name="tag_view_vertical_padding">5dp</item>
+        <item name="tag_view_horizontal_padding">5dp</item>
     </style>
 
     <style name="TagLayout.Arc">

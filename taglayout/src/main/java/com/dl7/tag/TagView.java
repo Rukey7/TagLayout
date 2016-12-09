@@ -144,7 +144,9 @@ public class TagView extends TextView {
             }
         }
         setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
-        setCompoundDrawablePadding(mIconPadding);
+        if (mDecorateIcon != null) {
+            setCompoundDrawablePadding(mIconPadding);
+        }
         setOriTextColor(mTextColor);
 
         setOnClickListener(new OnClickListener() {
@@ -180,22 +182,26 @@ public class TagView extends TextView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // 设置标签固定高度
+        int tagHeight = MeasureUtils.getFontHeight(getTextSize()) + mVerticalPadding * 2;
+        int fitHeightSpec = MeasureSpec.makeMeasureSpec(tagHeight, MeasureSpec.EXACTLY);
         ViewParent parent = getParent();
         if (parent instanceof TagLayout) {
             int fitTagNum = ((TagLayout) getParent()).getFitTagNum();
             if (fitTagNum == INVALID_VALUE) {
-                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                super.onMeasure(widthMeasureSpec, fitHeightSpec);
             } else {
                 int availableWidth = ((TagLayout) getParent()).getAvailableWidth();
                 int horizontalInterval = ((TagLayout) getParent()).getHorizontalInterval();
                 int width = (availableWidth - (fitTagNum - 1) * horizontalInterval) / fitTagNum;
+                // 设置标签固定宽度
                 int fitWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
-                super.onMeasure(fitWidthSpec, heightMeasureSpec);
+                super.onMeasure(fitWidthSpec, fitHeightSpec);
                 mFitWidth = width;
             }
             _adjustText();
         } else {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            super.onMeasure(widthMeasureSpec, fitHeightSpec);
             _initIcon(INVALID_VALUE);
         }
     }
@@ -222,10 +228,9 @@ public class TagView extends TextView {
         } else {
             color = mTextColor;
         }
-        // 设置icon颜色
+        // 设置icon和字体颜色
         _setIconAndTextColor(isChecked, color);
         // 绘制背景
-//        mPaint.setStyle(Paint.Style.FILL);
         if (isChecked) {
             mPaint.setColor(mBgColorChecked);
         } else {
@@ -233,8 +238,6 @@ public class TagView extends TextView {
         }
         canvas.drawRoundRect(mRect, radius, radius, mPaint);
         // 绘制边框
-//        mPaint.setStyle(Paint.Style.STROKE);
-//        mBorderPaint.setStrokeWidth(mBorderWidth);
         if (isChecked) {
             mBorderPaint.setColor(mBorderColorChecked);
         } else {
@@ -264,7 +267,7 @@ public class TagView extends TextView {
 
         // 计算字符串长度
         float textWidth = mPaint.measureText(String.valueOf(mTagText));
-        if (mTagMode != MODE_CHANGE || mDecorateIcon != null) {
+        if (mTagMode != MODE_CHANGE && mDecorateIcon != null) {
             availableWidth -= MeasureUtils.getFontHeight(getTextSize()) + mIconPadding;
         }
         if (mTagMode == MODE_CHANGE) {
@@ -509,6 +512,7 @@ public class TagView extends TextView {
     public final static int MODE_MULTI_CHOICE = 205;
     public final static int MODE_ICON_CHECK_INVISIBLE = 206;
     public final static int MODE_ICON_CHECK_CHANGE = 207;
+    public final static int MODE_DELETE = 208;
 
     // 显示外形
     private int mTagShape = SHAPE_ROUND_RECT;
