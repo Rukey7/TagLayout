@@ -182,9 +182,14 @@ public class TagView extends TextView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // 设置标签固定高度
-        int tagHeight = MeasureUtils.getFontHeight(getTextSize()) + mVerticalPadding * 2;
-        int fitHeightSpec = MeasureSpec.makeMeasureSpec(tagHeight, MeasureSpec.EXACTLY);
+        int fitHeightSpec;
+        if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.EXACTLY) {
+            // 设置标签固定高度，标签只有一行
+            int tagHeight = MeasureUtils.getFontHeight(getTextSize()) + mVerticalPadding * 2;
+            fitHeightSpec = MeasureSpec.makeMeasureSpec(tagHeight, MeasureSpec.EXACTLY);
+        } else {
+            fitHeightSpec = heightMeasureSpec;
+        }
         ViewParent parent = getParent();
         if (parent instanceof TagLayout) {
             int fitTagNum = ((TagLayout) getParent()).getFitTagNum();
@@ -622,10 +627,14 @@ public class TagView extends TextView {
             int left = 0;
             if (textWidth == INVALID_VALUE) {
                 mPaint.setTextSize(getTextSize());
-                textWidth = mPaint.measureText(String.valueOf(mTagText));
+                textWidth = mPaint.measureText(String.valueOf(getText()));
                 left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - mIconPadding / 2;
             } else if (mFitWidth != INVALID_VALUE) {
                 left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - mIconPadding / 2;
+            }
+            if (left < 0) {
+                // 正常自适应大小时left=0，固定大小时大于0，小于0需要处理下
+                left = 0;
             }
             if (mTagMode == MODE_CHANGE) {
                 Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
