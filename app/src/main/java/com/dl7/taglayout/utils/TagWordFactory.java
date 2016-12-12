@@ -13,6 +13,13 @@ public final class TagWordFactory {
             "This is a long string, This is a long string, This is a long string",
             "这是长字符串，这是长字符串，这是长字符串，这是长字符串"
     };
+
+    public static final String[] TAG_WORD_2 = new String[] {
+            "Success", "Failure", "美女", "影视", "豆瓣Top250",
+            "Have you given any thought to your future?",
+            "我猜着了开头，但我猜不中这结局"
+    };
+
     private static Random sRandom = new Random();
 
     private TagWordFactory() {

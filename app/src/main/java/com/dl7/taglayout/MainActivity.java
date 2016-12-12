@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(MainActivity.this, TagChoiceActivity.class));
                 } else if (mTagWords[2].equals(text)) {
                     startActivity(new Intent(MainActivity.this, TagEditActivity.class));
+                } else if (mTagWords[3].equals(text)) {
+                    startActivity(new Intent(MainActivity.this, TagChangeActivity.class));
                 }
             }
         });

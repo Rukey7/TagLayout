@@ -15,6 +15,7 @@ public class TagEditActivity extends AppCompatActivity implements TagView.OnTagC
     private TagLayout mTagLayout3;
     private TagView mTagDel;
     private TagView mTagAdd;
+    private TagView mTagEditControl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +30,7 @@ public class TagEditActivity extends AppCompatActivity implements TagView.OnTagC
         mTagLayout3 = (TagLayout) findViewById(R.id.tag_layout_3);
         mTagDel = (TagView) findViewById(R.id.tag_del);
         mTagAdd = (TagView) findViewById(R.id.tag_add);
+        mTagEditControl = (TagView) findViewById(R.id.tag_open_edit);
         mTagLayout1.setTagClickListener(this);
         mTagLayout1.setTagLongClickListener(this);
         mTagLayout2.setTagClickListener(this);
@@ -51,6 +53,20 @@ public class TagEditActivity extends AppCompatActivity implements TagView.OnTagC
                 mTagLayout1.deleteTag(0);
                 mTagLayout2.deleteTag(0);
                 mTagLayout3.deleteTag(0);
+            }
+        });
+        mTagEditControl.setTagCheckListener(new TagView.OnTagCheckListener() {
+            @Override
+            public void onTagCheck(String text, boolean isChecked) {
+                if (isChecked) {
+                    mTagLayout1.entryEditMode();
+                    mTagLayout2.entryEditMode();
+                    mTagLayout3.entryEditMode();
+                } else {
+                    mTagLayout1.exitEditMode();
+                    mTagLayout2.exitEditMode();
+                    mTagLayout3.exitEditMode();
+                }
             }
         });
     }

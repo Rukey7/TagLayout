@@ -16,5 +16,5 @@
         app:tag_layout_horizontal_interval="20dp"
         app:tag_layout_vertical_interval="10dp"
         app:tag_view_text_size="16"
-        app:tag_press_feedback="true"/>
+        app:tag_layout_press_feedback="true"/>
 </FrameLayout>

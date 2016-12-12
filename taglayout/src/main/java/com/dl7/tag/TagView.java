@@ -63,6 +63,8 @@ public class TagView extends TextView {
     private float mRadius;
     // Tag内容
     private CharSequence mTagText;
+    // 选中时Tag内容
+    private CharSequence mTagTextChecked;
     // 字体水平空隙
     private int mHorizontalPadding;
     // 字体垂直空隙
@@ -110,35 +112,43 @@ public class TagView extends TextView {
         if (attrs != null) {
             final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TagView);
             try {
-                mIsPressFeedback = a.getBoolean(R.styleable.TagView_press_feedback, false);
-                mTagShape = a.getInteger(R.styleable.TagView_shape, TagView.SHAPE_ROUND_RECT);
-                mTagMode = a.getInteger(R.styleable.TagView_mode, MODE_NORMAL);
+                mTagShape = a.getInteger(R.styleable.TagView_tag_shape, TagView.SHAPE_ROUND_RECT);
+                mTagMode = a.getInteger(R.styleable.TagView_tag_mode, MODE_NORMAL);
                 if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE) {
                     mIsPressFeedback = true;
                     mIsAutoToggleCheck = true;
                 }
-                mIsAutoToggleCheck = a.getBoolean(R.styleable.TagView_auto_check, mIsAutoToggleCheck);
-
-                mBgColor = a.getColor(R.styleable.TagView_bg_color, Color.WHITE);
-                mBorderColor = a.getColor(R.styleable.TagView_border_color, Color.parseColor("#ff333333"));
-                mTextColor = a.getColor(R.styleable.TagView_text_color, Color.parseColor("#ff666666"));
-                if (mIsPressFeedback) {
-                    mBgColorChecked = a.getColor(R.styleable.TagView_bg_color_check, mTextColor);
-                    mBorderColorChecked = a.getColor(R.styleable.TagView_border_color_check, mTextColor);
-                    mTextColorChecked = a.getColor(R.styleable.TagView_text_color_check, Color.WHITE);
-                } else {
-                    mBgColorChecked = a.getColor(R.styleable.TagView_bg_color_check, mBgColor);
-                    mBorderColorChecked = a.getColor(R.styleable.TagView_border_color_check, mBorderColor);
-                    mTextColorChecked = a.getColor(R.styleable.TagView_text_color_check, mTextColor);
+                if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE) {
+                    // 如果有文字切换，需要注意控制文字长度是否一行内能显示完全
+                    mTagTextChecked = a.getString(R.styleable.TagView_tag_text_check);
+                    mIsChecked = a.getBoolean(R.styleable.TagView_tag_checked, false);
+                    if (mIsChecked) {
+                        setText(mTagTextChecked);
+                    }
                 }
-                mBorderWidth = a.getDimension(R.styleable.TagView_border_width, MeasureUtils.dp2px(context, 0.5f));
+                mIsAutoToggleCheck = a.getBoolean(R.styleable.TagView_tag_auto_check, mIsAutoToggleCheck);
+                mIsPressFeedback = a.getBoolean(R.styleable.TagView_tag_press_feedback, mIsPressFeedback);
+
+                mBgColor = a.getColor(R.styleable.TagView_tag_bg_color, Color.WHITE);
+                mBorderColor = a.getColor(R.styleable.TagView_tag_border_color, Color.parseColor("#ff333333"));
+                mTextColor = a.getColor(R.styleable.TagView_tag_text_color, Color.parseColor("#ff666666"));
+                if (mIsPressFeedback) {
+                    mBgColorChecked = a.getColor(R.styleable.TagView_tag_bg_color_check, mTextColor);
+                    mBorderColorChecked = a.getColor(R.styleable.TagView_tag_border_color_check, mTextColor);
+                    mTextColorChecked = a.getColor(R.styleable.TagView_tag_text_color_check, Color.WHITE);
+                } else {
+                    mBgColorChecked = a.getColor(R.styleable.TagView_tag_bg_color_check, mBgColor);
+                    mBorderColorChecked = a.getColor(R.styleable.TagView_tag_border_color_check, mBorderColor);
+                    mTextColorChecked = a.getColor(R.styleable.TagView_tag_text_color_check, mTextColor);
+                }
+                mBorderWidth = a.getDimension(R.styleable.TagView_tag_border_width, MeasureUtils.dp2px(context, 0.5f));
                 mBorderPaint.setStrokeWidth(mBorderWidth);
-                mRadius = a.getDimension(R.styleable.TagView_border_radius, MeasureUtils.dp2px(context, 5f));
-                mHorizontalPadding = (int) a.getDimension(R.styleable.TagView_horizontal_padding, MeasureUtils.dp2px(context, 5f));
-                mVerticalPadding = (int) a.getDimension(R.styleable.TagView_vertical_padding, MeasureUtils.dp2px(context, 5f));
-                mIconPadding = (int) a.getDimension(R.styleable.TagView_icon_padding, MeasureUtils.dp2px(context, 3f));
-                mDecorateIcon = a.getDrawable(R.styleable.TagView_icon);
-                mIconCheckChange = a.getDrawable(R.styleable.TagView_icon_change);
+                mRadius = a.getDimension(R.styleable.TagView_tag_border_radius, MeasureUtils.dp2px(context, 5f));
+                mHorizontalPadding = (int) a.getDimension(R.styleable.TagView_tag_horizontal_padding, MeasureUtils.dp2px(context, 5f));
+                mVerticalPadding = (int) a.getDimension(R.styleable.TagView_tag_vertical_padding, MeasureUtils.dp2px(context, 5f));
+                mIconPadding = (int) a.getDimension(R.styleable.TagView_tag_icon_padding, MeasureUtils.dp2px(context, 3f));
+                mDecorateIcon = a.getDrawable(R.styleable.TagView_tag_icon);
+                mIconCheckChange = a.getDrawable(R.styleable.TagView_tag_icon_change);
             } finally {
                 a.recycle();
             }
@@ -204,7 +214,9 @@ public class TagView extends TextView {
                 super.onMeasure(fitWidthSpec, fitHeightSpec);
                 mFitWidth = width;
             }
-            _adjustText();
+            if (!mIsChecked) {
+                _adjustText();
+            }
         } else {
             super.onMeasure(widthMeasureSpec, fitHeightSpec);
             _initIcon(INVALID_VALUE);
@@ -584,8 +596,7 @@ public class TagView extends TextView {
      */
     private void _toggleTagCheckStatus() {
         if (mIsAutoToggleCheck) {
-            mIsChecked = !mIsChecked;
-            postInvalidate();
+            _switchTagCheckStatus(!mIsChecked);
             if (mTagCheckListener != null) {
                 mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
             }
@@ -601,8 +612,7 @@ public class TagView extends TextView {
      * @param checked
      */
     public void setChecked(boolean checked) {
-        mIsChecked = checked;
-        postInvalidate();
+        _switchTagCheckStatus(checked);
         if (mTagCheckListener != null) {
             mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
         }
@@ -612,7 +622,18 @@ public class TagView extends TextView {
      * 清除选中状态
      */
     public void cleanTagCheckStatus() {
-        mIsChecked = false;
+        _switchTagCheckStatus(false);
+    }
+
+    private void _switchTagCheckStatus(boolean isChecked) {
+        mIsChecked = isChecked;
+        if (mTagTextChecked != null) {
+            if (mIsChecked) {
+                setText(mTagTextChecked);
+            } else {
+                setText(mTagText);
+            }
+        }
         postInvalidate();
     }
 

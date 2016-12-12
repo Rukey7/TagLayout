@@ -93,10 +93,10 @@ public class TagLayout extends ViewGroup {
 
         final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TagLayout);
         try {
-            mTagMode = a.getInteger(R.styleable.TagLayout_tag_mode, TagView.MODE_NORMAL);
-            mTagShape = a.getInteger(R.styleable.TagLayout_tag_shape, TagView.SHAPE_ROUND_RECT);
-            mIsPressFeedback = a.getBoolean(R.styleable.TagLayout_tag_press_feedback, false);
-            mEnableRandomColor = a.getBoolean(R.styleable.TagLayout_tag_random_color, false);
+            mTagMode = a.getInteger(R.styleable.TagLayout_tag_layout_mode, TagView.MODE_NORMAL);
+            mTagShape = a.getInteger(R.styleable.TagLayout_tag_layout_shape, TagView.SHAPE_ROUND_RECT);
+            mIsPressFeedback = a.getBoolean(R.styleable.TagLayout_tag_layout_press_feedback, false);
+            mEnableRandomColor = a.getBoolean(R.styleable.TagLayout_tag_layout_random_color, false);
             mFitTagNum = a.getInteger(R.styleable.TagLayout_tag_layout_fit_num, TagView.INVALID_VALUE);
             mBgColor = a.getColor(R.styleable.TagLayout_tag_layout_bg_color, Color.WHITE);
             mBorderColor = a.getColor(R.styleable.TagLayout_tag_layout_border_color, Color.WHITE);
@@ -586,6 +586,17 @@ public class TagLayout extends ViewGroup {
     }
 
     /**
+     * add Tags
+     *
+     * @param textList tag list
+     */
+    public void addTags(List<String> textList) {
+        for (String text : textList) {
+            addTag(text);
+        }
+    }
+
+    /**
      * clean Tags
      */
     public void cleanTags() {
@@ -607,6 +618,16 @@ public class TagLayout extends ViewGroup {
      * @param textList tag list
      */
     public void setTags(String... textList) {
+        cleanTags();
+        addTags(textList);
+    }
+
+    /**
+     * set Tags
+     *
+     * @param textList tag list
+     */
+    public void setTags(List<String> textList) {
         cleanTags();
         addTags(textList);
     }
@@ -641,6 +662,15 @@ public class TagLayout extends ViewGroup {
     }
 
     /**
+     * update Tags
+     *
+     * @param textList tag list
+     */
+    public void updateTags(List<String> textList) {
+        updateTags((String[]) textList.toArray());
+    }
+
+    /**
      * get checked tags
      * @return
      */
@@ -652,6 +682,20 @@ public class TagLayout extends ViewGroup {
             }
         }
         return checkTags;
+    }
+
+    /**
+     * set tag to be checked
+     * @param text
+     */
+    public void setCheckTag(String text) {
+        if (mTagMode == TagView.MODE_SINGLE_CHOICE) {
+            for (TagView tagView : mTagViews) {
+                if (tagView.getTagText().toString().equals(text)) {
+                    tagView.setChecked(true);
+                }
+            }
+        }
     }
 
     /**

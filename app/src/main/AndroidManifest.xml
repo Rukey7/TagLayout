@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.dl7.taglayout">
+<manifest package="com.dl7.taglayout"
+          xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:name=".MyApplication"
@@ -21,6 +21,8 @@
         <activity android:name=".TagChoiceActivity">
         </activity>
         <activity android:name=".TagEditActivity">
+        </activity>
+        <activity android:name=".TagChangeActivity">
         </activity>
     </application>
 
