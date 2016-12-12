@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    tools:context="com.dl7.taglayout.TagViewActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:text="带图标Tag(彩色、按压反馈、固定大小或自适应):"
+        android:layout_margin="3dp"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
+        android:background="#dddddd"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:layout_height="wrap_content">
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_del"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="删除"
+            app:tag_border_color="@android:color/holo_red_light"
+            app:tag_icon="@mipmap/ic_delete"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_red_light"/>
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+
+        <com.dl7.tag.TagView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:text="具有选中状态Tag:"
+        android:layout_margin="3dp"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
+        android:background="#dddddd"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:layout_height="wrap_content">
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_del_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="删除"
+            app:tag_mode="check"
+            app:tag_border_color="@android:color/holo_red_light"
+            app:tag_icon="@mipmap/ic_delete"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_red_light"/>
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_add_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_mode="check"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+
+        <com.dl7.tag.TagView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_mode="check"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:text="选中文字切换Tag:"
+        android:layout_margin="3dp"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
+        android:background="#dddddd"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:layout_height="wrap_content">
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_del_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="删除"
+            app:tag_mode="check"
+            app:tag_text_check="取消"
+            app:tag_border_color="@android:color/holo_red_light"
+            app:tag_icon="@mipmap/ic_delete"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_red_light"/>
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_add_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_text_check="我要取消"
+            app:tag_mode="check"
+            app:tag_bg_color_check="@color/gray_background"
+            app:tag_border_color_check="@color/gray_background"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+
+        <com.dl7.tag.TagView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_text_check="我要取消"
+            app:tag_mode="check"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:text="选中图标消失Tag:"
+        android:layout_margin="3dp"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
+        android:background="#dddddd"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:layout_height="wrap_content">
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_del_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="删除"
+            app:tag_mode="icon_check_invisible"
+            app:tag_border_color="@android:color/holo_red_light"
+            app:tag_icon="@mipmap/ic_delete"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_red_light"/>
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_add_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_mode="icon_check_invisible"
+            app:tag_bg_color_check="@color/gray_background"
+            app:tag_border_color_check="@color/gray_background"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+
+        <com.dl7.tag.TagView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            android:text="添加"
+            app:tag_text_check="我要取消"
+            app:tag_mode="icon_check_invisible"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+    </FrameLayout>
+</LinearLayout>

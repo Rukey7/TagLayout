@@ -7,4 +7,5 @@
     <color name="default_border">#88F44336</color>
     <color name="default_bg">#33F44336</color>
     <color name="default_text">#FF666666</color>
+    <color name="gray_background">#66333333</color>
 </resources>

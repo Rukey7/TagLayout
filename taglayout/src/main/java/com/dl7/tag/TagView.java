@@ -114,11 +114,14 @@ public class TagView extends TextView {
             try {
                 mTagShape = a.getInteger(R.styleable.TagView_tag_shape, TagView.SHAPE_ROUND_RECT);
                 mTagMode = a.getInteger(R.styleable.TagView_tag_mode, MODE_NORMAL);
-                if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE) {
+//                if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE) {
+//                    mIsPressFeedback = true;
+//                    mIsAutoToggleCheck = true;
+//                }
+                if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE ||
+                        mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE) {
                     mIsPressFeedback = true;
                     mIsAutoToggleCheck = true;
-                }
-                if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE) {
                     // 如果有文字切换，需要注意控制文字长度是否一行内能显示完全
                     mTagTextChecked = a.getString(R.styleable.TagView_tag_text_check);
                     mIsChecked = a.getBoolean(R.styleable.TagView_tag_checked, false);
@@ -529,7 +532,6 @@ public class TagView extends TextView {
     public final static int MODE_MULTI_CHOICE = 205;
     public final static int MODE_ICON_CHECK_INVISIBLE = 206;
     public final static int MODE_ICON_CHECK_CHANGE = 207;
-    public final static int MODE_DELETE = 208;
 
     // 显示外形
     private int mTagShape = SHAPE_ROUND_RECT;
@@ -538,7 +540,13 @@ public class TagView extends TextView {
     // 装饰的icon
     private Drawable mDecorateIcon;
     private Drawable mIconCheckChange;
+    // icon和文件间距
     private int mIconPadding = 0;
+    // icon的左偏移量和选中时左偏移量
+    private int mIconLeft = 0;
+    private int mIconLeftChecked = 0;
+    // icon大小
+    private int mIconSize = 0;
     // 是否选中
     private boolean mIsChecked = false;
     // 是否自动切换选中状态，不使能可以灵活地选择切换，通过用于等待网络返回再做切换
@@ -633,6 +641,10 @@ public class TagView extends TextView {
             } else {
                 setText(mTagText);
             }
+            if (mTagMode != MODE_ICON_CHECK_INVISIBLE && mDecorateIcon != null) {
+                mDecorateIcon.setBounds(mIsChecked ? mIconLeftChecked : mIconLeft, 0,
+                        mIconSize + (mIsChecked ? mIconLeftChecked : mIconLeft), mIconSize);
+            }
         }
         postInvalidate();
     }
@@ -644,30 +656,37 @@ public class TagView extends TextView {
      */
     private void _initIcon(float textWidth) {
         if (!mIsInitIcon && (mTagMode == MODE_CHANGE || mDecorateIcon != null)) {
-            int size = MeasureUtils.getFontHeight(getTextSize());
-            int left = 0;
+            mIconSize = MeasureUtils.getFontHeight(getTextSize());
+            mIconLeft = 0;
             if (textWidth == INVALID_VALUE) {
                 mPaint.setTextSize(getTextSize());
                 textWidth = mPaint.measureText(String.valueOf(getText()));
-                left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - mIconPadding / 2;
+                mIconLeft = (int) ((getMeasuredWidth() - textWidth - mIconSize) / 2) - mHorizontalPadding - mIconPadding / 2;
             } else if (mFitWidth != INVALID_VALUE) {
-                left = (int) ((getMeasuredWidth() - textWidth - size) / 2) - mHorizontalPadding - mIconPadding / 2;
+                mIconLeft = (int) ((getMeasuredWidth() - textWidth - mIconSize) / 2) - mHorizontalPadding - mIconPadding / 2;
             }
-            if (left < 0) {
-                // 正常自适应大小时left=0，固定大小时大于0，小于0需要处理下
-                left = 0;
+            if (mIconLeft < 0) {
+                // 正常自适应大小时mIconLeft=0，固定大小时大于0，小于0需要处理下
+                mIconLeft = 0;
+            }
+            if (!TextUtils.isEmpty(mTagTextChecked)) {
+                textWidth = mPaint.measureText(String.valueOf(mTagTextChecked));
+                mIconLeftChecked = (int) ((getMeasuredWidth() - textWidth - mIconSize) / 2) - mHorizontalPadding - mIconPadding / 2;
+                if (mIconLeftChecked < 0) {
+                    mIconLeftChecked = 0;
+                }
             }
             if (mTagMode == MODE_CHANGE) {
                 Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
-                mDecorateIcon = new RotateDrawable(bitmap, left);
+                mDecorateIcon = new RotateDrawable(bitmap, mIconLeft);
             }
             if (mDecorateIcon != null) {
-                mDecorateIcon.setBounds(left, 0, size + left, size);
+                mDecorateIcon.setBounds(mIconLeft, 0, mIconSize + mIconLeft, mIconSize);
                 mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
                 setCompoundDrawables(mDecorateIcon, null, null, null);
             }
             if (mIconCheckChange != null) {
-                mIconCheckChange.setBounds(left, 0, size + left, size);
+                mIconCheckChange.setBounds(mIconLeft, 0, mIconSize + mIconLeft, mIconSize);
                 mIconCheckChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
             }
             mIsInitIcon = true;
@@ -706,6 +725,7 @@ public class TagView extends TextView {
             }
         } else if (mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE && !mIsChecked) {
             setCompoundDrawables(mDecorateIcon, null, null, null);
+            mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
         } else {
             mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
         }

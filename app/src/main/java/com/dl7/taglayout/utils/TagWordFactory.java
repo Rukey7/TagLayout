@@ -11,7 +11,8 @@ public final class TagWordFactory {
     public static final String[] TAG_WORD = new String[] {
             "Hello", "Android", "Java", "我是TagView", "Hello World",
             "This is a long string, This is a long string, This is a long string",
-            "这是长字符串，这是长字符串，这是长字符串，这是长字符串"
+            "这是长字符串，这是长字符串，这是长字符串，这是长字符串", "它在我的机器上可以很好运行T_T",
+            "Learn not and know not.", "Life is but a span.", "Never say die.", "知识改变命运，英语成就未来"
     };
 
     public static final String[] TAG_WORD_2 = new String[] {
