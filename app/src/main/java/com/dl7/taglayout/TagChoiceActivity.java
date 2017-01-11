@@ -38,7 +38,7 @@ public class TagChoiceActivity extends AppCompatActivity implements TagView.OnTa
 
         mTagAdd.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 String word = TagWordFactory.provideTagWord();
                 mTagLayout1.addTag(word);
                 mTagLayout2.addTag(word);
@@ -47,7 +47,7 @@ public class TagChoiceActivity extends AppCompatActivity implements TagView.OnTa
         });
         mTagDel.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 mTagLayout1.deleteCheckedTags();
                 mTagLayout2.deleteCheckedTags();
                 mTagLayout3.deleteCheckedTags();
@@ -56,12 +56,12 @@ public class TagChoiceActivity extends AppCompatActivity implements TagView.OnTa
     }
 
     @Override
-    public void onTagClick(String text, @TagView.TagMode int tagMode) {
+    public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
         ToastUtils.showToast(text);
     }
 
     @Override
-    public void onTagLongClick(String text, @TagView.TagMode int tagMode) {
+    public void onTagLongClick(int position, String text, @TagView.TagMode int tagMode) {
         ToastUtils.showToast("长按:" + text);
     }
 }

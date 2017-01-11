@@ -30,7 +30,7 @@ public class TagViewActivity extends AppCompatActivity {
         mTagSmileOrCry = (TagView) findViewById(R.id.tag_smile_or_cry);
         mTagGoodOrBad.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 if (_isClickedNow(R.id.tag_good_or_bad)) {
                     return;
                 }
@@ -44,7 +44,7 @@ public class TagViewActivity extends AppCompatActivity {
         });
         mTagRightOrError.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 if (_isClickedNow(R.id.tag_right_or_error)) {
                     return;
                 }
@@ -58,7 +58,7 @@ public class TagViewActivity extends AppCompatActivity {
         });
         mTagSmileOrCry.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 if (_isClickedNow(R.id.tag_smile_or_cry)) {
                     return;
                 }

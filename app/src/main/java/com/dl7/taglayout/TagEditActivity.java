@@ -40,7 +40,7 @@ public class TagEditActivity extends AppCompatActivity implements TagView.OnTagC
 
         mTagAdd.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 String word = TagWordFactory.provideTagWord();
                 mTagLayout1.addTag(word);
                 mTagLayout2.addTag(word);
@@ -49,7 +49,7 @@ public class TagEditActivity extends AppCompatActivity implements TagView.OnTagC
         });
         mTagDel.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 mTagLayout1.deleteTag(0);
                 mTagLayout2.deleteTag(0);
                 mTagLayout3.deleteTag(0);
@@ -57,7 +57,7 @@ public class TagEditActivity extends AppCompatActivity implements TagView.OnTagC
         });
         mTagEditControl.setTagCheckListener(new TagView.OnTagCheckListener() {
             @Override
-            public void onTagCheck(String text, boolean isChecked) {
+            public void onTagCheck(int position, String text, boolean isChecked) {
                 if (isChecked) {
                     mTagLayout1.entryEditMode();
                     mTagLayout2.entryEditMode();
@@ -72,12 +72,12 @@ public class TagEditActivity extends AppCompatActivity implements TagView.OnTagC
     }
 
     @Override
-    public void onTagClick(String text, @TagView.TagMode int tagMode) {
+    public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
         ToastUtils.showToast(text);
     }
 
     @Override
-    public void onTagLongClick(String text, @TagView.TagMode int tagMode) {
+    public void onTagLongClick(int position, String text, @TagView.TagMode int tagMode) {
         ToastUtils.showToast("长按:" + text);
     }
 }

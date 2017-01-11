@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         mTagLayout.setTags(mTagWords);
         mTagLayout.setTagClickListener(new TagView.OnTagClickListener() {
             @Override
-            public void onTagClick(String text, @TagView.TagMode int tagMode) {
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
                 if (mTagWords[0].equals(text)) {
                     startActivity(new Intent(MainActivity.this, TagShapeActivity.class));
                 } else if (mTagWords[1].equals(text)) {

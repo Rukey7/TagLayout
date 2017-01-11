@@ -171,7 +171,7 @@ public class TagView extends TextView {
                     return;
                 }
                 if (mTagClickListener != null) {
-                    mTagClickListener.onTagClick(String.valueOf(mTagText), mTagMode);
+                    mTagClickListener.onTagClick((int) getTag(), String.valueOf(mTagText), mTagMode);
                 }
             }
         });
@@ -182,7 +182,7 @@ public class TagView extends TextView {
                     return false;
                 }
                 if (mTagLongClickListener != null) {
-                    mTagLongClickListener.onTagLongClick(String.valueOf(mTagText), mTagMode);
+                    mTagLongClickListener.onTagLongClick((int) getTag(), String.valueOf(mTagText), mTagMode);
                 }
                 return mTagMode != MODE_EDIT;
             }
@@ -502,15 +502,15 @@ public class TagView extends TextView {
      * 点击监听器
      */
     public interface OnTagClickListener {
-        void onTagClick(String text, @TagMode int tagMode);
+        void onTagClick(int position, String text, @TagMode int tagMode);
     }
 
     public interface OnTagLongClickListener {
-        void onTagLongClick(String text, @TagMode int tagMode);
+        void onTagLongClick(int position, String text, @TagMode int tagMode);
     }
 
     public interface OnTagCheckListener {
-        void onTagCheck(String text, boolean isChecked);
+        void onTagCheck(int position, String text, boolean isChecked);
     }
 
     /**
@@ -603,7 +603,7 @@ public class TagView extends TextView {
         if (mIsAutoToggleCheck) {
             _setTagCheckStatus(!mIsChecked);
             if (mTagCheckListener != null) {
-                mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
+                mTagCheckListener.onTagCheck((int) getTag(), String.valueOf(mTagText), mIsChecked);
             }
         }
     }
@@ -620,7 +620,7 @@ public class TagView extends TextView {
     public void setChecked(boolean checked) {
         _setTagCheckStatus(checked);
         if (mTagCheckListener != null) {
-            mTagCheckListener.onTagCheck(String.valueOf(mTagText), mIsChecked);
+            mTagCheckListener.onTagCheck((int) getTag(), String.valueOf(mTagText), mIsChecked);
         }
     }
 
