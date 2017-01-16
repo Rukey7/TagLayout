@@ -171,7 +171,7 @@ public class TagView extends TextView {
                     return;
                 }
                 if (mTagClickListener != null) {
-                    mTagClickListener.onTagClick((int) getTag(), String.valueOf(mTagText), mTagMode);
+                    mTagClickListener.onTagClick(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mTagMode);
                 }
             }
         });
@@ -182,7 +182,7 @@ public class TagView extends TextView {
                     return false;
                 }
                 if (mTagLongClickListener != null) {
-                    mTagLongClickListener.onTagLongClick((int) getTag(), String.valueOf(mTagText), mTagMode);
+                    mTagLongClickListener.onTagLongClick(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mTagMode);
                 }
                 return mTagMode != MODE_EDIT;
             }
@@ -603,7 +603,7 @@ public class TagView extends TextView {
         if (mIsAutoToggleCheck) {
             _setTagCheckStatus(!mIsChecked);
             if (mTagCheckListener != null) {
-                mTagCheckListener.onTagCheck((int) getTag(), String.valueOf(mTagText), mIsChecked);
+                mTagCheckListener.onTagCheck(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mIsChecked);
             }
         }
     }
@@ -620,7 +620,7 @@ public class TagView extends TextView {
     public void setChecked(boolean checked) {
         _setTagCheckStatus(checked);
         if (mTagCheckListener != null) {
-            mTagCheckListener.onTagCheck((int) getTag(), String.valueOf(mTagText), mIsChecked);
+            mTagCheckListener.onTagCheck(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mIsChecked);
         }
     }
 
@@ -635,8 +635,10 @@ public class TagView extends TextView {
         mIsChecked = isChecked;
         if (mTagTextChecked != null) {
             setText(mIsChecked ? mTagTextChecked : mTagText);
-            mDecorateIcon.setBounds(mIsChecked ? mIconLeftChecked : mIconLeft, 0,
-                    mIconSize + (mIsChecked ? mIconLeftChecked : mIconLeft), mIconSize);
+            if (mDecorateIcon != null) {
+                mDecorateIcon.setBounds(mIsChecked ? mIconLeftChecked : mIconLeft, 0,
+                        mIconSize + (mIsChecked ? mIconLeftChecked : mIconLeft), mIconSize);
+            }
         }
         _switchIconStatus();
         _switchIconColor();
