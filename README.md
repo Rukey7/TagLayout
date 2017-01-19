@@ -5,14 +5,27 @@
 
 ## Screenshot
 
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_shape.png)  
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_choice.png)  
+##### 不同标签形状：
+
+![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_shape.png)
+
+##### 标签单选和多选模式：
+
+![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_choice.png) 
+
+##### 标签编辑模式：
+
 ![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_edit.png)  
 
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_change.gif)  
+##### 标签换一换模式：
+
+![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_change.gif) 
+
+##### 单个标签的其它用法：
+ 
 ![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_view.gif)
 
-## Using IjkPlayerView
+## dependence
 
 你需要在项目的根 `build.gradle` 加入如下JitPack仓库链接：
 
@@ -62,7 +75,7 @@ compile 'com.github.Rukey7:TagLayout:{lastest-version}'
 
 ### 属性设置
 
-标签布局属性：
+标签布局属性（有对应接口）：
 
 |name|format|description|
 |:---:|:---:|:---:|
