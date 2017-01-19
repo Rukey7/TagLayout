@@ -76,7 +76,7 @@ public class TagViewActivity extends AppCompatActivity {
     private boolean _isClickedNow(int id) {
         int lastTime = mTimeSparse.get(id);
         boolean isClickedNow = false;
-        int curTime = (int) System.currentTimeMillis();
+        int curTime = (int) (System.currentTimeMillis() % 1000000);
         if (curTime - lastTime < 2000) {
             isClickedNow = true;
         }
