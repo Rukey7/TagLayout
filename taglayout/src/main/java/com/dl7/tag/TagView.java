@@ -47,6 +47,8 @@ public class TagView extends TextView {
 
     private Paint mPaint;
     private Paint mBorderPaint;
+    // 遮罩层
+    private Paint mScrimPaint;
     // 背景色
     private int mBgColor;
     // 边框颜色
@@ -105,6 +107,9 @@ public class TagView extends TextView {
         mPaint.setStyle(Paint.Style.FILL);
         mBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mBorderPaint.setStyle(Paint.Style.STROKE);
+        mScrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mScrimPaint.setStyle(Paint.Style.FILL);
+        mScrimPaint.setColor(Color.argb(0x66, 0xc0, 0xc0, 0xc0));
         mTagText = getText();
         // 设置字体占中
         setGravity(Gravity.CENTER);
@@ -257,6 +262,10 @@ public class TagView extends TextView {
             mBorderPaint.setColor(mBorderColor);
         }
         canvas.drawRoundRect(mRect, radius, radius, mBorderPaint);
+        // 绘制半透明遮罩
+        if (mIsTagPress && (!mIsPressFeedback || mIsChecked || mBgColor == mBgColorChecked)) {
+            canvas.drawRoundRect(mRect, radius, radius, mScrimPaint);
+        }
 
         super.onDraw(canvas);
     }
@@ -458,18 +467,18 @@ public class TagView extends TextView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!mIsPressFeedback || mTagMode == MODE_EDIT) {
+        if (mTagMode == MODE_EDIT) {
             return super.onTouchEvent(event);
         }
         switch (MotionEventCompat.getActionMasked(event)) {
             case MotionEvent.ACTION_DOWN:
                 mIsTagPress = true;
-                _switchIconColor();
+                _switchIconColor(false);
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (mIsTagPress && !_isViewUnder(event.getX(), event.getY())) {
                     mIsTagPress = false;
-                    _switchIconColor();
+                    _switchIconColor(false);
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -479,7 +488,7 @@ public class TagView extends TextView {
             case MotionEvent.ACTION_CANCEL:
                 if (mIsTagPress) {
                     mIsTagPress = false;
-                    _switchIconColor();
+                    _switchIconColor(false);
                 }
                 break;
         }
@@ -641,8 +650,8 @@ public class TagView extends TextView {
             }
         }
         _switchIconStatus();
-        _switchIconColor();
-        postInvalidate();
+        _switchIconColor(true);
+        invalidate();
     }
 
     /**
@@ -702,12 +711,19 @@ public class TagView extends TextView {
         }
     }
 
-    private void _switchIconColor() {
-        boolean isCheck = mIsChecked || mIsTagPress;
-        setTextColor(isCheck ? mTextColorChecked : mTextColor);
-        if (mDecorateIcon != null) {
-            mDecorateIcon.setColorFilter(isCheck ? mTextColorChecked : mTextColor, PorterDuff.Mode.SRC_IN);
+    /**
+     * 颜色切换
+     * @param isForce 是否强制设置颜色
+     */
+    private void _switchIconColor(boolean isForce) {
+        if (mIsPressFeedback || isForce) {
+            boolean isCheck = mIsChecked || mIsTagPress;
+            setTextColor(isCheck ? mTextColorChecked : mTextColor);
+            if (mDecorateIcon != null) {
+                mDecorateIcon.setColorFilter(isCheck ? mTextColorChecked : mTextColor, PorterDuff.Mode.SRC_IN);
+            }
         }
+        invalidate();
     }
 
     /**
