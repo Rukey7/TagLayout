@@ -7,23 +7,23 @@
 
 ##### 不同标签形状：
 
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_shape.png)
+![](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/TagLayout/tag_shape.png)
 
 ##### 标签单选和多选模式：
 
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_choice.png) 
+![](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/TagLayout/tag_choice.png) 
 
 ##### 标签编辑模式：
 
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_edit.png)  
+![](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/TagLayout/tag_edit.png)  
 
 ##### 标签换一换模式：
 
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_change.gif) 
+![](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/TagLayout/tag_change.gif) 
 
 ##### 单个标签的其它用法：
  
-![](https://raw.githubusercontent.com/Rukey7/TagLayout/master/ScreenShot/tag_view.gif)
+![](https://raw.githubusercontent.com/Rukey7/ScreenShot/master/TagLayout/tag_view.gif)
 
 ## dependence
 
