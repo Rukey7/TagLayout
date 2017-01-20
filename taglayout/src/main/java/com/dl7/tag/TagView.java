@@ -642,6 +642,7 @@ public class TagView extends TextView {
         }
         _switchIconStatus();
         _switchIconColor();
+        postInvalidate();
     }
 
     /**
