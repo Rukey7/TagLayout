@@ -367,4 +367,54 @@
             app:tag_text_color_check="@color/gray_background"/>
     </FrameLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="3dp"
+        android:text="倒计时Tag:"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
+        android:background="#dddddd"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp">
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_get_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="获取验证码"
+            app:tag_auto_check="false"
+            app:tag_bg_color="@android:color/holo_red_light"
+            app:tag_border_color="@android:color/holo_red_light"
+            app:tag_bg_color_check="#9e9e9e"
+            app:tag_border_color_check="#9e9e9e"
+            app:tag_text_color_check="@android:color/white"
+            app:tag_mode="check"
+            app:tag_press_feedback="false"
+            app:tag_text_check="已发送(10s)"
+            app:tag_text_color="@android:color/white"/>
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_skip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="20dp"
+            android:text="3s 跳过"
+            app:tag_auto_check="false"
+            app:tag_bg_color_check="#88000000"
+            app:tag_border_color="#88000000"
+            app:tag_mode="normal"
+            app:tag_press_feedback="false"
+            app:tag_text_color="@android:color/white"/>
+
+    </FrameLayout>
 </LinearLayout>

@@ -7,12 +7,17 @@ import android.util.Log;
 import android.util.SparseIntArray;
 
 import com.dl7.tag.TagView;
+import com.dl7.taglayout.utils.RxHelper;
+
+import rx.Subscriber;
 
 public class TagViewActivity extends AppCompatActivity {
 
     private TagView mTagGoodOrBad;
     private TagView mTagRightOrError;
     private TagView mTagSmileOrCry;
+    private TagView mTagGetCode;
+    private TagView mTagSkip;
 
     private Handler mHandler = new Handler();
     private SparseIntArray mTimeSparse = new SparseIntArray();
@@ -70,6 +75,30 @@ public class TagViewActivity extends AppCompatActivity {
                 }, 2000);
             }
         });
+
+        mTagGetCode.setTagClickListener(new TagView.OnTagClickListener() {
+            @Override
+            public void onTagClick(int position, String text, @TagView.TagMode int tagMode) {
+                if (!mTagGetCode.isChecked()) {
+                    RxHelper.countdown(10)
+                            .subscribe(new Subscriber<Integer>() {
+                                @Override
+                                public void onCompleted() {
+
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onNext(Integer integer) {
+                                }
+                            });
+                }
+            }
+        });
     }
 
 
@@ -80,8 +109,6 @@ public class TagViewActivity extends AppCompatActivity {
         if (curTime - lastTime < 2000) {
             isClickedNow = true;
         }
-        Log.w("TagViewActivity", curTime + " - " + lastTime);
-        Log.e("TagViewActivity", ""+(curTime - lastTime));
         mTimeSparse.put(id, curTime);
         return isClickedNow;
     }
