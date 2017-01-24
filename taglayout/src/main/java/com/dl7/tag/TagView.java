@@ -192,6 +192,7 @@ public class TagView extends TextView {
                 return mTagMode != MODE_EDIT;
             }
         });
+        _switchIconColor(mIsChecked);
     }
 
     @Override
@@ -389,6 +390,9 @@ public class TagView extends TextView {
 
     public void setTextColorChecked(int textColorChecked) {
         mTextColorChecked = textColorChecked;
+        if (mIsChecked) {
+            setTextColor(mTextColorChecked);
+        }
     }
 
     public float getBorderWidth() {
@@ -442,6 +446,17 @@ public class TagView extends TextView {
 
     public void setPressFeedback(boolean pressFeedback) {
         mIsPressFeedback = pressFeedback;
+    }
+
+    public CharSequence getTagTextChecked() {
+        return mTagTextChecked;
+    }
+
+    public void setTagTextChecked(CharSequence tagTextChecked) {
+        mTagTextChecked = tagTextChecked;
+        if (mIsChecked) {
+            setText(mTagTextChecked);
+        }
     }
 
     /**

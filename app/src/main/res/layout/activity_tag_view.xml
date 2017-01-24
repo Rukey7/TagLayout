@@ -169,7 +169,8 @@
             app:tag_mode="check"
             app:tag_press_feedback="true"
             app:tag_text_check="我要取消"
-            app:tag_text_color="@android:color/holo_green_light"/>
+            app:tag_text_color="@android:color/holo_green_light"
+            android:id="@+id/tagView"/>
     </FrameLayout>
 
     <TextView
@@ -387,8 +388,8 @@
 
         <com.dl7.tag.TagView
             android:id="@+id/tag_get_code"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="85dp"
+            android:layout_height="35dp"
             android:layout_marginLeft="20dp"
             android:text="获取验证码"
             app:tag_auto_check="false"
@@ -406,15 +407,29 @@
             android:id="@+id/tag_skip"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="center_horizontal"
             android:layout_marginRight="20dp"
-            android:text="3s 跳过"
+            android:text="3 跳过"
             app:tag_auto_check="false"
-            app:tag_bg_color_check="#88000000"
-            app:tag_border_color="#88000000"
+            app:tag_bg_color="#44000000"
+            app:tag_border_color="@android:color/transparent"
             app:tag_mode="normal"
             app:tag_press_feedback="false"
             app:tag_text_color="@android:color/white"/>
 
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_skip_2"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            android:text="跳过 3"
+            app:tag_shape="arc"
+            app:tag_auto_check="false"
+            app:tag_bg_color="@android:color/white"
+            app:tag_border_color="@android:color/holo_red_dark"
+            app:tag_mode="normal"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_red_light"/>
     </FrameLayout>
 </LinearLayout>
