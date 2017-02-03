@@ -248,7 +248,7 @@ public class TagView extends TextView {
         } else if (mTagShape == SHAPE_RECT) {
             radius = 0;
         }
-        final boolean isChecked = mIsTagPress || mIsChecked;
+        final boolean isChecked = (mIsTagPress && mIsPressFeedback) || mIsChecked;
         // 绘制背景
         if (isChecked) {
             mPaint.setColor(mBgColorChecked);
@@ -264,7 +264,8 @@ public class TagView extends TextView {
         }
         canvas.drawRoundRect(mRect, radius, radius, mBorderPaint);
         // 绘制半透明遮罩
-        if (mIsTagPress && (!mIsPressFeedback || mIsChecked || mBgColor == mBgColorChecked)) {
+        if (mIsTagPress && (!mIsPressFeedback || mIsChecked ||
+                (mBgColor == mBgColorChecked && mBorderColor == mBorderColorChecked && mTextColor == mTextColorChecked))) {
             canvas.drawRoundRect(mRect, radius, radius, mScrimPaint);
         }
 
