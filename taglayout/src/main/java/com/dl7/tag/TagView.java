@@ -83,6 +83,8 @@ public class TagView extends TextView {
     private boolean mIsPressFeedback = false;
     // 原始标签颜色
     private int mTextColor = INVALID_VALUE;
+    // 是否处理过初始状态为选中的情况
+    private boolean mIsHandleOriChecked = false;
 
 
     public TagView(Context context, String text) {
@@ -126,9 +128,6 @@ public class TagView extends TextView {
                     // 如果有文字切换，需要注意控制文字长度是否一行内能显示完全
                     mTagTextChecked = a.getString(R.styleable.TagView_tag_text_check);
                     mIsChecked = a.getBoolean(R.styleable.TagView_tag_checked, false);
-                    if (mIsChecked) {
-                        setText(mTagTextChecked);
-                    }
                 }
                 mIsAutoToggleCheck = a.getBoolean(R.styleable.TagView_tag_auto_check, mIsAutoToggleCheck);
                 mIsPressFeedback = a.getBoolean(R.styleable.TagView_tag_press_feedback, mIsPressFeedback);
@@ -192,7 +191,6 @@ public class TagView extends TextView {
                 return mTagMode != MODE_EDIT;
             }
         });
-        _switchIconColor(mIsChecked);
     }
 
     @Override
@@ -670,6 +668,7 @@ public class TagView extends TextView {
         invalidate();
     }
 
+
     /**
      * 初始化 ICON
      *
@@ -704,13 +703,17 @@ public class TagView extends TextView {
             if (mDecorateIcon != null) {
                 mDecorateIcon.setBounds(mIconLeft, 0, mIconSize + mIconLeft, mIconSize);
                 mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
-                setCompoundDrawables(mDecorateIcon, null, null, null);
+                _switchIconStatus();
             }
             if (mIconCheckChange != null) {
                 mIconCheckChange.setBounds(mIconLeft, 0, mIconSize + mIconLeft, mIconSize);
                 mIconCheckChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
             }
             mIsInitIcon = true;
+        }
+        if (mIsChecked && !mIsHandleOriChecked) {
+            _setTagCheckStatus(mIsChecked);
+            mIsHandleOriChecked = true;
         }
     }
 
@@ -723,6 +726,8 @@ public class TagView extends TextView {
                 setCompoundDrawables(mIsChecked ? null : mDecorateIcon, null, null, null);
             } else if (mTagMode == MODE_ICON_CHECK_CHANGE) {
                 setCompoundDrawables(mIsChecked ? mIconCheckChange : mDecorateIcon, null, null, null);
+            } else {
+                setCompoundDrawables(mDecorateIcon, null, null, null);
             }
         }
     }
