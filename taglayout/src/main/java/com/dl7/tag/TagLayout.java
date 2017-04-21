@@ -6,11 +6,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.SparseBooleanArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.dl7.tag.utils.ColorsFactory;
 import com.dl7.tag.utils.MeasureUtils;
@@ -70,6 +70,7 @@ public class TagLayout extends ViewGroup {
     private int mTagMode;
     // 固定状态的TagView
     private TagView mFitTagView;
+    private TagEditView mFitTagEditView;
     // 使能随机颜色
     private boolean mEnableRandomColor;
 
@@ -90,6 +91,7 @@ public class TagLayout extends ViewGroup {
     private void _init(Context context, AttributeSet attrs, int defStyleAttr) {
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mRect = new RectF();
+        mTagTextSize = MeasureUtils.sp2px(context, 13.0f);
 
         final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TagLayout);
         try {
@@ -118,7 +120,7 @@ public class TagLayout extends ViewGroup {
                 mTagTextColorCheck = a.getColor(R.styleable.TagLayout_tag_view_text_color_check, mTagTextColor);
             }
             mTagBorderWidth = a.getDimension(R.styleable.TagLayout_tag_view_border_width, MeasureUtils.dp2px(context, 0.5f));
-            mTagTextSize = a.getFloat(R.styleable.TagLayout_tag_view_text_size, 13.0f);
+            mTagTextSize = a.getDimension(R.styleable.TagLayout_tag_view_text_size, mTagTextSize);
             mTagRadius = a.getDimension(R.styleable.TagLayout_tag_view_border_radius, MeasureUtils.dp2px(context, 5f));
             mTagHorizontalPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_horizontal_padding, MeasureUtils.dp2px(context, 5f));
             mTagVerticalPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_vertical_padding, MeasureUtils.dp2px(context, 5f));
@@ -134,8 +136,8 @@ public class TagLayout extends ViewGroup {
             mFitTagView = _initTagView("换一换", TagView.MODE_CHANGE);
             addView(mFitTagView);
         } else if (mTagMode == TagView.MODE_EDIT) {
-            mFitTagView = _initTagView("", TagView.MODE_EDIT);
-            addView(mFitTagView);
+            _initTagEditView();
+            addView(mFitTagEditView);
         } else if (mTagMode == TagView.MODE_SINGLE_CHOICE || mTagMode == TagView.MODE_MULTI_CHOICE) {
             mIsPressFeedback = true;
             mInsideTagCheckListener = new TagView.OnTagCheckListener() {
@@ -145,7 +147,7 @@ public class TagLayout extends ViewGroup {
                         mTagCheckListener.onTagCheck(position, text, isChecked);
                     }
                     for (int i = 0; i < mTagViews.size(); i++) {
-                        if (mTagViews.get(i).getTagText().toString().equals(text)) {
+                        if (mTagViews.get(i).getText().equals(text)) {
                             mCheckSparseArray.put(i, isChecked);
                         } else if (mTagMode == TagView.MODE_SINGLE_CHOICE && mCheckSparseArray.get(i)) {
                             mTagViews.get(i).cleanTagCheckStatus();
@@ -249,7 +251,7 @@ public class TagLayout extends ViewGroup {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+//        super.onDraw(canvas);
         // 绘制背景
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(mBgColor);
@@ -329,30 +331,50 @@ public class TagLayout extends ViewGroup {
      * ==================================== 设置TagView ====================================
      */
 
+    private void _initTagEditView() {
+        mFitTagEditView = new TagEditView(getContext());
+        if (mEnableRandomColor) {
+            int[] color = ColorsFactory.provideColor();
+            mFitTagEditView.setBorderColor(color[0]);
+            mFitTagEditView.setTextColor(color[1]);
+        } else {
+            mFitTagEditView = new TagEditView(getContext());
+            mFitTagEditView.setBorderColor(mTagBorderColor);
+            mFitTagEditView.setTextColor(mTagTextColor);
+        }
+        mFitTagEditView.setBorderWidth(mTagBorderWidth);
+        mFitTagEditView.setRadius(mTagRadius);
+        mFitTagEditView.setHorizontalPadding(mTagHorizontalPadding);
+        mFitTagEditView.setVerticalPadding(mTagVerticalPadding);
+        mFitTagEditView.setTextSize(MeasureUtils.px2sp(getContext(), mTagTextSize));
+        mFitTagEditView.updateView();
+    }
+
     private TagView _initTagView(String text, @TagView.TagMode int tagMode) {
         TagView tagView = new TagView(getContext(), text);
         if (mEnableRandomColor) {
             _setTagRandomColors(tagView);
         } else {
-            tagView.setBgColor(mTagBgColor);
-            tagView.setBorderColor(mTagBorderColor);
-            tagView.setOriTextColor(mTagTextColor);
-            tagView.setBgColorChecked(mTagBgColorCheck);
-            tagView.setBorderColorChecked(mTagBorderColorCheck);
-            tagView.setTextColorChecked(mTagTextColorCheck);
+            tagView.setBgColorLazy(mTagBgColor);
+            tagView.setBorderColorLazy(mTagBorderColor);
+            tagView.setTextColorLazy(mTagTextColor);
+            tagView.setBgColorCheckedLazy(mTagBgColorCheck);
+            tagView.setBorderColorCheckedLazy(mTagBorderColorCheck);
+            tagView.setTextColorCheckedLazy(mTagTextColorCheck);
         }
-        tagView.setBorderWidth(mTagBorderWidth);
-        tagView.setRadius(mTagRadius);
-        tagView.setTextSize(mTagTextSize);
-        tagView.setHorizontalPadding(mTagHorizontalPadding);
-        tagView.setVerticalPadding(mTagVerticalPadding);
+        tagView.setBorderWidthLazy(mTagBorderWidth);
+        tagView.setRadiusLazy(mTagRadius);
+        tagView.setTextSizeLazy(mTagTextSize);
+        tagView.setHorizontalPaddingLazy(mTagHorizontalPadding);
+        tagView.setVerticalPaddingLazy(mTagVerticalPadding);
         tagView.setPressFeedback(mIsPressFeedback);
         tagView.setTagClickListener(mTagClickListener);
         tagView.setTagLongClickListener(mTagLongClickListener);
         tagView.setTagCheckListener(mInsideTagCheckListener);
-        tagView.setTagShape(mTagShape);
-        tagView.setTagMode(tagMode);
-        tagView.setCompoundDrawablePadding(mIconPadding);
+        tagView.setTagShapeLazy(mTagShape);
+        tagView.setTagModeLazy(tagMode);
+        tagView.setIconPaddingLazy(mIconPadding);
+        tagView.updateView();
         mTagViews.add(tagView);
         tagView.setTag(mTagViews.size() - 1);
         return tagView;
@@ -361,19 +383,19 @@ public class TagLayout extends ViewGroup {
     private void _setTagRandomColors(TagView tagView) {
         int[] color = ColorsFactory.provideColor();
         if (mIsPressFeedback) {
-            tagView.setOriTextColor(color[1]);
-            tagView.setBgColor(Color.WHITE);
-            tagView.setBgColorChecked(color[0]);
-            tagView.setBorderColorChecked(color[0]);
-            tagView.setTextColorChecked(Color.WHITE);
+            tagView.setTextColorLazy(color[1]);
+            tagView.setBgColorLazy(Color.WHITE);
+            tagView.setBgColorCheckedLazy(color[0]);
+            tagView.setBorderColorCheckedLazy(color[0]);
+            tagView.setTextColorCheckedLazy(Color.WHITE);
         } else {
-            tagView.setBgColor(color[1]);
-            tagView.setOriTextColor(mTagTextColor);
-            tagView.setBgColorChecked(color[1]);
-            tagView.setBorderColorChecked(color[0]);
-            tagView.setTextColorChecked(mTagTextColor);
+            tagView.setBgColorLazy(color[1]);
+            tagView.setTextColorLazy(mTagTextColor);
+            tagView.setBgColorCheckedLazy(color[1]);
+            tagView.setBorderColorCheckedLazy(color[0]);
+            tagView.setTextColorCheckedLazy(mTagTextColor);
         }
-        tagView.setBorderColor(color[0]);
+        tagView.setBorderColorLazy(color[0]);
     }
 
     public int getTagBgColor() {
@@ -508,7 +530,7 @@ public class TagLayout extends ViewGroup {
     public void setIconPadding(int padding) {
         mIconPadding = padding;
         if (mFitTagView != null) {
-            mFitTagView.setCompoundDrawablePadding(mIconPadding);
+            mFitTagView.setIconPadding(mIconPadding);
         }
     }
 
@@ -522,7 +544,7 @@ public class TagLayout extends ViewGroup {
      * @param text tag content
      */
     public void addTag(String text) {
-        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null)) {
             addView(_initTagView(text, TagView.MODE_NORMAL), getChildCount() - 1);
         } else {
             addView(_initTagView(text, mTagMode));
@@ -536,14 +558,14 @@ public class TagLayout extends ViewGroup {
      */
     public void addTagWithIcon(String text, int iconResId) {
         TagView tagView;
-        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null)) {
             tagView = _initTagView(text, TagView.MODE_NORMAL);
         } else {
             tagView = _initTagView(text, mTagMode);
         }
-        tagView.setIconRes(iconResId);
-        tagView.setCompoundDrawablePadding(mIconPadding);
-        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
+        tagView.setDecorateIcon(ContextCompat.getDrawable(getContext(), iconResId));
+        tagView.setIconPadding(mIconPadding);
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null)) {
             addView(tagView, getChildCount() - 1);
         } else {
             addView(tagView);
@@ -553,6 +575,7 @@ public class TagLayout extends ViewGroup {
 
     /**
      * 设置对应位置Tag
+     *
      * @param startPos
      */
     private void _refreshPositionTag(int startPos) {
@@ -563,14 +586,15 @@ public class TagLayout extends ViewGroup {
 
     /**
      * delete tag
+     *
      * @param position
      */
     public void deleteTag(int position) {
         if (position < 0 || position >= getChildCount()) {
-            Toast.makeText(getContext(), "Invalid position", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getContext(), "Invalid position", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null)) {
             if (position == getChildCount() - 1) {
                 // 最后一项为固定项不删除
                 return;
@@ -613,7 +637,7 @@ public class TagLayout extends ViewGroup {
      * clean Tags
      */
     public void cleanTags() {
-        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null)) {
             removeViews(0, getChildCount() - 1);
             mTagViews.clear();
             mCheckSparseArray.clear();
@@ -653,14 +677,14 @@ public class TagLayout extends ViewGroup {
     public void updateTags(String... textList) {
         int startPos = 0;
         int minSize;
-        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagView != null)) {
+        if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null)) {
             startPos = 1;
             minSize = Math.min(textList.length, mTagViews.size() - 1);
         } else {
             minSize = Math.min(textList.length, mTagViews.size());
         }
         for (int i = 0; i < minSize; i++) {
-            mTagViews.get(i + startPos).setTagText(textList[i]);
+            mTagViews.get(i + startPos).setText(textList[i]);
         }
         if (mEnableRandomColor) {
             startPos = 0;
@@ -685,13 +709,14 @@ public class TagLayout extends ViewGroup {
 
     /**
      * get checked tags
+     *
      * @return
      */
     public List<String> getCheckedTags() {
         List<String> checkTags = new ArrayList<>();
         for (int i = 0; i < mCheckSparseArray.size(); i++) {
             if (mCheckSparseArray.valueAt(i)) {
-                checkTags.add(mTagViews.get(mCheckSparseArray.keyAt(i)).getTagText().toString());
+                checkTags.add(mTagViews.get(mCheckSparseArray.keyAt(i)).getText());
             }
         }
         return checkTags;
@@ -699,12 +724,13 @@ public class TagLayout extends ViewGroup {
 
     /**
      * set tag to be checked
+     *
      * @param text
      */
     public void setCheckTag(String text) {
         if (mTagMode == TagView.MODE_SINGLE_CHOICE) {
             for (TagView tagView : mTagViews) {
-                if (tagView.getTagText().toString().equals(text)) {
+                if (tagView.getText().equals(text)) {
                     tagView.setChecked(true);
                 }
             }
@@ -737,12 +763,10 @@ public class TagLayout extends ViewGroup {
      * exit edit mode
      */
     public void exitEditMode() {
-        if (mTagMode == TagView.MODE_EDIT) {
-            if (mFitTagView != null) {
-                mFitTagView.exitEditMode();
-                removeViewAt(getChildCount() - 1);
-                mFitTagView = null;
-            }
+        if (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null) {
+            mFitTagEditView.exitEditMode();
+            removeViewAt(getChildCount() - 1);
+            mFitTagEditView = null;
         }
     }
 
@@ -752,8 +776,8 @@ public class TagLayout extends ViewGroup {
     public void entryEditMode() {
         if (mTagMode == TagView.MODE_NORMAL || mTagMode == TagView.MODE_EDIT) {
             mTagMode = TagView.MODE_EDIT;
-            mFitTagView = _initTagView("", TagView.MODE_EDIT);
-            addView(mFitTagView);
+            _initTagEditView();
+            addView(mFitTagEditView);
         }
     }
 }

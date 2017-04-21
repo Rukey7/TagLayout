@@ -33,18 +33,18 @@ public class RotateDrawable extends Drawable implements Animatable {
     private Bitmap mBitmap;
     // 偏移
     private int mTranslationX;
+    private int mTranslationY;
 
-    public RotateDrawable(Bitmap bitmap, int translationX) {
+
+    public RotateDrawable(Bitmap bitmap) {
         mBitmap = bitmap;
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
-        mTranslationX = translationX;
     }
-
 
     @Override
     public void draw(Canvas canvas) {
-        canvas.translate(mTranslationX, 0);
+        canvas.translate(mTranslationX, mTranslationY);
         canvas.rotate(mRotate, mRect.width() / 2, mRect.height() / 2);
         canvas.drawPaint(mPaint);
     }
@@ -68,6 +68,8 @@ public class RotateDrawable extends Drawable implements Animatable {
     protected void onBoundsChange(Rect bounds) {
         super.onBoundsChange(bounds);
         mRect.set(_clipSquare(bounds));
+        mTranslationX = (int) mRect.left;
+        mTranslationY = (int) mRect.top;
         // 缩放 Bitmap
         Bitmap zoom = BitmapUtils.zoom(mBitmap, bounds.width(), bounds.height());
         BitmapShader bitmapShader = new BitmapShader(zoom, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
@@ -76,7 +78,7 @@ public class RotateDrawable extends Drawable implements Animatable {
             stop();
         }
         // 设置动画
-        mValueAnimator = ValueAnimator.ofFloat(0, 2880).setDuration(3000);
+        mValueAnimator = ValueAnimator.ofFloat(0, 2880).setDuration(2000);
         mValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             boolean isOver = false;
 
@@ -85,12 +87,11 @@ public class RotateDrawable extends Drawable implements Animatable {
                 mRotate = (float) animation.getAnimatedValue();
                 if (mRotate <= 2160) {
                     isOver = false;
-                    invalidateSelf();
                 } else if (!isOver) {
                     isOver = true;
                     mRotate = 2160;
-                    invalidateSelf();
                 }
+                invalidateSelf();
             }
         });
         // 设置动画无限循环

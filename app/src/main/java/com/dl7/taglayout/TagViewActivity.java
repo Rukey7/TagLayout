@@ -32,8 +32,8 @@ public class TagViewActivity extends RxAppCompatActivity {
     private Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
-            mTagSkip2.setTagText("跳过 " + mCountNum);
-            mTagSkip.setTagText((mCountNum--) + " 跳过");
+            mTagSkip2.setText("跳过 " + mCountNum);
+            mTagSkip.setText((mCountNum--) + " 跳过");
             if (mCountNum == 0) {
                 mCountNum = 5;
             }
@@ -121,7 +121,7 @@ public class TagViewActivity extends RxAppCompatActivity {
 
                                 @Override
                                 public void onNext(Integer time) {
-                                    mTagGetCode.setTagTextChecked("已发送(" + time + ")");
+                                    mTagGetCode.setTextChecked("已发送(" + time + ")");
                                 }
                             });
                 }

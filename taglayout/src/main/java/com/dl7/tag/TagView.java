@@ -6,28 +6,24 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.DashPathEffect;
 import android.graphics.Paint;
-import android.graphics.PathEffect;
 import android.graphics.PorterDuff;
 import android.graphics.RectF;
+import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.IntDef;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.text.TextUtils;
-import android.text.method.ArrowKeyMovementMethod;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.TextView;
 
 import com.dl7.tag.drawable.RotateDrawable;
+import com.dl7.tag.drawable.SimpleCallBack;
 import com.dl7.tag.utils.MeasureUtils;
 
 import java.lang.annotation.ElementType;
@@ -40,57 +36,113 @@ import java.lang.annotation.Target;
  * Created by long on 2016/7/20.
  * TagView
  */
-public class TagView extends TextView {
+public class TagView extends View {
 
     // 无效数值
     public final static int INVALID_VALUE = -1;
 
+    // 3种外形模式：圆角矩形、圆弧、直角矩形
+    public final static int SHAPE_ROUND_RECT = 101;
+    public final static int SHAPE_ARC = 102;
+    public final static int SHAPE_RECT = 103;
+
+    @IntDef({SHAPE_ROUND_RECT, SHAPE_ARC, SHAPE_RECT})
+    @Retention(RetentionPolicy.SOURCE)
+    @Target(ElementType.PARAMETER)
+    public @interface TagShape {
+    }
+
+    // 类型模式：正常、编辑、换一换、单选、多选、图标选中消失、图标选中切换
+    public final static int MODE_NORMAL = 201;
+    public final static int MODE_EDIT = 202;
+    public final static int MODE_CHANGE = 203;
+    public final static int MODE_SINGLE_CHOICE = 204;
+    public final static int MODE_MULTI_CHOICE = 205;
+    public final static int MODE_ICON_CHECK_INVISIBLE = 206;
+    public final static int MODE_ICON_CHECK_CHANGE = 207;
+
+    @IntDef({MODE_NORMAL, MODE_EDIT, MODE_CHANGE, MODE_SINGLE_CHOICE, MODE_MULTI_CHOICE, MODE_ICON_CHECK_INVISIBLE, MODE_ICON_CHECK_CHANGE})
+    @Retention(RetentionPolicy.SOURCE)
+    @Target(ElementType.PARAMETER)
+    public @interface TagMode {
+    }
+
+    // 显示外形
+    private int mTagShape = SHAPE_ROUND_RECT;
+    // 显示类型
+    private int mTagMode = MODE_NORMAL;
+    // 画笔
     private Paint mPaint;
-    private Paint mBorderPaint;
-    // 遮罩层
-    private Paint mScrimPaint;
     // 背景色
-    private int mBgColor;
+    private int mBgColor = Color.WHITE;
     // 边框颜色
-    private int mBorderColor;
+    private int mBorderColor = Color.parseColor("#ff333333");
+    // 原始标签颜色
+    private int mTextColor = Color.parseColor("#ff666666");
     // 选中状态背景色
-    private int mBgColorChecked = INVALID_VALUE;
+    private int mBgColorChecked = Color.WHITE;
     // 选中状态边框颜色
-    private int mBorderColorChecked = INVALID_VALUE;
+    private int mBorderColorChecked = Color.parseColor("#ff333333");
     // 选中状态字体颜色
-    private int mTextColorChecked = INVALID_VALUE;
+    private int mTextColorChecked = Color.parseColor("#ff666666");
+    // 遮罩颜色
+    private int mScrimColor = Color.argb(0x66, 0xc0, 0xc0, 0xc0);
+    // 字体大小
+    private float mTextSize;
+    // 字体宽度和高度
+    private int mFontLen;
+    private int mFontH;
+    private int mFontLenChecked;
+    // 基线偏移距离
+    private float mBaseLineDistance;
     // 边框大小
     private float mBorderWidth;
     // 边框角半径
     private float mRadius;
-    // Tag内容
-    private CharSequence mTagText;
-    // 选中时Tag内容
-    private CharSequence mTagTextChecked;
+    // 内容
+    private String mText;
+    // 选中时内容
+    private String mTextChecked;
+    // 显示的文字
+    private String mShowText;
     // 字体水平空隙
     private int mHorizontalPadding;
     // 字体垂直空隙
     private int mVerticalPadding;
     // 边框矩形
     private RectF mRect;
-    // 调整标志位，只做一次
-    private boolean mIsAdjusted = false;
-    // 标签是否被按住
-    private boolean mIsTagPress = false;
-    // 宽度固定
-    private int mFitWidth = INVALID_VALUE;
+    // 装饰的icon
+    private Drawable mDecorateIcon;
+    // 变化模式下的icon
+    private Drawable mDecorateIconChange;
+    // 设置图标的位置，只支持左右两边
+    private int mIconGravity = Gravity.LEFT;
+    // icon和文字间距
+    private int mIconPadding = 0;
+    // icon大小
+    private int mIconSize = 0;
+    // 是否选中
+    private boolean mIsChecked = false;
+    // 是否自动切换选中状态，不使能可以灵活地选择切换，通常用于等待网络返回再做切换
+    private boolean mIsAutoToggleCheck = false;
+    // 是否被按住
+    private boolean mIsPressed = false;
     // 是否使能按压反馈
     private boolean mIsPressFeedback = false;
-    // 原始标签颜色
-    private int mTextColor = INVALID_VALUE;
-    // 是否处理过初始状态为选中的情况
-    private boolean mIsHandleOriChecked = false;
+    // 点击监听器
+    private OnTagClickListener mTagClickListener;
+    private OnTagLongClickListener mTagLongClickListener;
+    private OnTagCheckListener mTagCheckListener;
 
+
+    public TagView(Context context) {
+        super(context);
+        _init(context, null);
+    }
 
     public TagView(Context context, String text) {
-        super(context);
-        setText(text);
-        _init(context, null);
+        this(context);
+        mText = text;
     }
 
     public TagView(Context context, AttributeSet attrs) {
@@ -98,136 +150,180 @@ public class TagView extends TextView {
         _init(context, attrs);
     }
 
-    /**
-     * 初始化
-     *
-     * @param context
-     */
     private void _init(Context context, AttributeSet attrs) {
-        mRect = new RectF();
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaint.setStyle(Paint.Style.FILL);
-        mBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mBorderPaint.setStyle(Paint.Style.STROKE);
-        mScrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mScrimPaint.setStyle(Paint.Style.FILL);
-        mScrimPaint.setColor(Color.argb(0x66, 0xc0, 0xc0, 0xc0));
-        mTagText = getText();
-        // 设置字体占中
-        setGravity(Gravity.CENTER);
+        mBorderWidth = MeasureUtils.dp2px(context, 0.5f);
+        mRadius = MeasureUtils.dp2px(context, 5f);
+        mHorizontalPadding = (int) MeasureUtils.dp2px(context, 5f);
+        mVerticalPadding = (int) MeasureUtils.dp2px(context, 5f);
+        mIconPadding = (int) MeasureUtils.dp2px(context, 3f);
+        mTextSize = MeasureUtils.dp2px(context, 14f);
 
         if (attrs != null) {
             final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TagView);
             try {
                 mTagShape = a.getInteger(R.styleable.TagView_tag_shape, TagView.SHAPE_ROUND_RECT);
                 mTagMode = a.getInteger(R.styleable.TagView_tag_mode, MODE_NORMAL);
-                if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE ||
-                        mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE) {
-                    mIsPressFeedback = true;
+                if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_ICON_CHECK_INVISIBLE || mTagMode == MODE_ICON_CHECK_CHANGE) {
                     mIsAutoToggleCheck = true;
-                    // 如果有文字切换，需要注意控制文字长度是否一行内能显示完全
-                    mTagTextChecked = a.getString(R.styleable.TagView_tag_text_check);
                     mIsChecked = a.getBoolean(R.styleable.TagView_tag_checked, false);
+                    mDecorateIconChange = a.getDrawable(R.styleable.TagView_tag_icon_change);
                 }
                 mIsAutoToggleCheck = a.getBoolean(R.styleable.TagView_tag_auto_check, mIsAutoToggleCheck);
                 mIsPressFeedback = a.getBoolean(R.styleable.TagView_tag_press_feedback, mIsPressFeedback);
 
+                mText = a.getString(R.styleable.TagView_tag_text);
+                mTextChecked = a.getString(R.styleable.TagView_tag_text_check);
+                mTextSize = a.getDimension(R.styleable.TagView_tag_text_size, mTextSize);
                 mBgColor = a.getColor(R.styleable.TagView_tag_bg_color, Color.WHITE);
                 mBorderColor = a.getColor(R.styleable.TagView_tag_border_color, Color.parseColor("#ff333333"));
                 mTextColor = a.getColor(R.styleable.TagView_tag_text_color, Color.parseColor("#ff666666"));
-                if (mIsPressFeedback) {
-                    mBgColorChecked = a.getColor(R.styleable.TagView_tag_bg_color_check, mTextColor);
-                    mBorderColorChecked = a.getColor(R.styleable.TagView_tag_border_color_check, mTextColor);
-                    mTextColorChecked = a.getColor(R.styleable.TagView_tag_text_color_check, Color.WHITE);
-                } else {
-                    mBgColorChecked = a.getColor(R.styleable.TagView_tag_bg_color_check, mBgColor);
-                    mBorderColorChecked = a.getColor(R.styleable.TagView_tag_border_color_check, mBorderColor);
-                    mTextColorChecked = a.getColor(R.styleable.TagView_tag_text_color_check, mTextColor);
-                }
-                mBorderWidth = a.getDimension(R.styleable.TagView_tag_border_width, MeasureUtils.dp2px(context, 0.5f));
-                mBorderPaint.setStrokeWidth(mBorderWidth);
-                mRadius = a.getDimension(R.styleable.TagView_tag_border_radius, MeasureUtils.dp2px(context, 5f));
-                mHorizontalPadding = (int) a.getDimension(R.styleable.TagView_tag_horizontal_padding, MeasureUtils.dp2px(context, 5f));
-                mVerticalPadding = (int) a.getDimension(R.styleable.TagView_tag_vertical_padding, MeasureUtils.dp2px(context, 5f));
-                mIconPadding = (int) a.getDimension(R.styleable.TagView_tag_icon_padding, MeasureUtils.dp2px(context, 3f));
-                Drawable iconDrawable = a.getDrawable(R.styleable.TagView_tag_icon);
-                if (iconDrawable != null) {
-                    mDecorateIcon = iconDrawable.getConstantState().newDrawable();
-                }
-                Drawable changeDrawable = a.getDrawable(R.styleable.TagView_tag_icon_change);
-                if (changeDrawable != null) {
-                    mIconCheckChange = changeDrawable.getConstantState().newDrawable();
-                }
+                mBgColorChecked = a.getColor(R.styleable.TagView_tag_bg_color_check, mBgColor);
+                mBorderColorChecked = a.getColor(R.styleable.TagView_tag_border_color_check, mBorderColor);
+                mTextColorChecked = a.getColor(R.styleable.TagView_tag_text_color_check, mTextColor);
+                mBorderWidth = a.getDimension(R.styleable.TagView_tag_border_width, mBorderWidth);
+                mRadius = a.getDimension(R.styleable.TagView_tag_border_radius, mRadius);
+                mHorizontalPadding = (int) a.getDimension(R.styleable.TagView_tag_horizontal_padding, mHorizontalPadding);
+                mVerticalPadding = (int) a.getDimension(R.styleable.TagView_tag_vertical_padding, mVerticalPadding);
+                mIconPadding = (int) a.getDimension(R.styleable.TagView_tag_icon_padding, mIconPadding);
+                mDecorateIcon = a.getDrawable(R.styleable.TagView_tag_icon);
+                mIconGravity = a.getInteger(R.styleable.TagView_tag_gravity, Gravity.LEFT);
             } finally {
                 a.recycle();
             }
         }
-        setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
-        if (mDecorateIcon != null) {
-            setCompoundDrawablePadding(mIconPadding);
+
+        if (mTagMode == MODE_ICON_CHECK_CHANGE && mDecorateIconChange == null) {
+            throw new RuntimeException("You must set the drawable by 'tag_icon_change' property in MODE_ICON_CHECK_CHANGE mode");
         }
-        setOriTextColor(mTextColor);
+        // 如果没有图标则把 mIconPadding 设为0
+        if (mDecorateIcon == null && mDecorateIconChange == null) {
+            mIconPadding = 0;
+        } else if (mDecorateIconChange != null) {
+            mDecorateIconChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
+        }
+        mRect = new RectF();
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        setClickable(true);
+        if (!isSaveEnabled()) {
+            // 使能状态保存
+            setSaveEnabled(true);
+        }
 
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mTagMode == MODE_EDIT) {
-                    return;
-                }
                 if (mTagClickListener != null) {
-                    mTagClickListener.onTagClick(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mTagMode);
+                    mTagClickListener.onTagClick(getTag() == null ? 0 : (int) getTag(), mText, mTagMode);
                 }
             }
         });
         setOnLongClickListener(new OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (mTagMode == MODE_EDIT) {
-                    return false;
-                }
                 if (mTagLongClickListener != null) {
-                    mTagLongClickListener.onTagLongClick(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mTagMode);
+                    mTagLongClickListener.onTagLongClick(getTag() == null ? 0 : (int) getTag(), mText, mTagMode);
                 }
-                return mTagMode != MODE_EDIT;
+                return true;
             }
         });
     }
 
-    @Override
-    protected boolean getDefaultEditable() {
-        return true;
+    /**
+     * 调整显示的字符
+     * @param maxWidth
+     * @return
+     */
+    private int _adjustText(int maxWidth) {
+        if (mPaint.getTextSize() != mTextSize) {
+            mPaint.setTextSize(mTextSize);
+            final Paint.FontMetrics fontMetrics = mPaint.getFontMetrics();
+            // 文字高度
+            mFontH = (int) (fontMetrics.descent - fontMetrics.ascent);
+            // 用来设置基线的偏移量,再加上 getHeight() / 2 就是基线坐标
+            mBaseLineDistance = (int) Math.ceil((fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent);
+        }
+        // 计算文字宽度
+        if (TextUtils.isEmpty(mText)) {
+            mText = "";
+        }
+        mFontLen = (int) mPaint.measureText(mText);
+        if (TextUtils.isEmpty(mTextChecked)) {
+            mFontLenChecked = mFontLen;
+        } else {
+            mFontLenChecked = (int) mPaint.measureText(mTextChecked);
+        }
+        // 计算图标大小
+        if ((mDecorateIcon != null || mDecorateIconChange != null) && mIconSize != mFontH) {
+            mIconSize = mFontH;
+        }
+        // 计算出了文字外所需要占用的宽度
+        int allPadding;
+        if (mTagMode == MODE_ICON_CHECK_CHANGE && mIsChecked) {
+            allPadding = mIconPadding + mIconSize + mHorizontalPadding * 2;
+        } else if (mDecorateIcon != null) {
+            allPadding = (mTagMode == MODE_ICON_CHECK_INVISIBLE && mIsChecked) ? mHorizontalPadding * 2 :
+                    mIconPadding + mIconSize + mHorizontalPadding * 2;
+        } else {
+            allPadding = mHorizontalPadding * 2;
+        }
+        // 设置显示的文字
+        String showText = (mIsChecked && !TextUtils.isEmpty(mTextChecked)) ? mTextChecked : mText;
+        if (mIsChecked && mFontLenChecked + allPadding > maxWidth) {
+            float pointWidth = mPaint.measureText(".");
+            // 计算能显示的字体长度
+            float maxTextWidth = maxWidth - allPadding - pointWidth * 3;
+            mShowText = _clipShowText(showText, mPaint, maxTextWidth);
+            mFontLenChecked = (int) mPaint.measureText(mShowText);
+        } else if (!mIsChecked && mFontLen + allPadding > maxWidth) {
+            float pointWidth = mPaint.measureText(".");
+            // 计算能显示的字体长度
+            float maxTextWidth = maxWidth - allPadding - pointWidth * 3;
+            mShowText = _clipShowText(showText, mPaint, maxTextWidth);
+            mFontLen = (int) mPaint.measureText(mShowText);
+        } else {
+            mShowText = showText;
+        }
+
+        return allPadding;
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int fitHeightSpec;
-        if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.EXACTLY) {
-            // 设置标签固定高度，标签只有一行
-            int tagHeight = MeasureUtils.getFontHeight(getTextSize()) + mVerticalPadding * 2;
-            fitHeightSpec = MeasureSpec.makeMeasureSpec(tagHeight, MeasureSpec.EXACTLY);
-        } else {
-            fitHeightSpec = heightMeasureSpec;
-        }
         ViewParent parent = getParent();
         if (parent instanceof TagLayout) {
             int fitTagNum = ((TagLayout) getParent()).getFitTagNum();
-            if (fitTagNum == INVALID_VALUE) {
-                super.onMeasure(widthMeasureSpec, fitHeightSpec);
-            } else {
+            if (fitTagNum != INVALID_VALUE) {
                 int availableWidth = ((TagLayout) getParent()).getAvailableWidth();
                 int horizontalInterval = ((TagLayout) getParent()).getHorizontalInterval();
-                int width = (availableWidth - (fitTagNum - 1) * horizontalInterval) / fitTagNum;
-                // 设置标签固定宽度
-                int fitWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
-                super.onMeasure(fitWidthSpec, fitHeightSpec);
-                mFitWidth = width;
+                int fitWidth = (availableWidth - (fitTagNum - 1) * horizontalInterval) / fitTagNum;
+                widthMeasureSpec = MeasureSpec.makeMeasureSpec(fitWidth, MeasureSpec.EXACTLY);
             }
-            if (!mIsChecked) {
-                _adjustText();
+        }
+
+        int allPadding = _adjustText(MeasureSpec.getSize(widthMeasureSpec));
+        int fontLen = mIsChecked ? mFontLenChecked : mFontLen;
+        // 如果为精确测量 MeasureSpec.EXACTLY，则直接使用测量的大小，否则让控件实现自适应
+        // 如果你用了精确测量则 mHorizontalPadding 和 mVerticalPadding 会对最终大小判定无效
+        int width = (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY) ?
+                MeasureSpec.getSize(widthMeasureSpec) : allPadding + fontLen;
+        int height = (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY) ?
+                MeasureSpec.getSize(heightMeasureSpec) : mVerticalPadding * 2 + mFontH;
+        setMeasuredDimension(width, height);
+        // 计算图标放置位置
+        if (mDecorateIcon != null || mDecorateIconChange != null) {
+            int top = (height - mIconSize) / 2;
+            int left;
+            if (mIconGravity == Gravity.RIGHT) {
+                int padding = (width - mIconSize - fontLen - mIconPadding) / 2;
+                left = width - padding - mIconSize;
+            } else {
+                left = (width - mIconSize - fontLen - mIconPadding) / 2;
             }
-        } else {
-            super.onMeasure(widthMeasureSpec, fitHeightSpec);
-            _initIcon(INVALID_VALUE);
+            if (mTagMode == MODE_ICON_CHECK_CHANGE && mIsChecked && mDecorateIconChange != null) {
+                mDecorateIconChange.setBounds(left, top, mIconSize + left, mIconSize + top);
+            } else if (mDecorateIcon != null) {
+                mDecorateIcon.setBounds(left, top, mIconSize + left, mIconSize + top);
+            }
         }
     }
 
@@ -240,14 +336,17 @@ public class TagView extends TextView {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        // 圆角
         float radius = mRadius;
         if (mTagShape == SHAPE_ARC) {
             radius = mRect.height() / 2;
         } else if (mTagShape == SHAPE_RECT) {
             radius = 0;
         }
-        final boolean isChecked = (mIsTagPress && mIsPressFeedback) || mIsChecked;
+        // 判断按压反馈和选中状态
+        final boolean isChecked = (mIsPressed && mIsPressFeedback) || mIsChecked;
         // 绘制背景
+        mPaint.setStyle(Paint.Style.FILL);
         if (isChecked) {
             mPaint.setColor(mBgColorChecked);
         } else {
@@ -255,244 +354,74 @@ public class TagView extends TextView {
         }
         canvas.drawRoundRect(mRect, radius, radius, mPaint);
         // 绘制边框
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setStrokeWidth(mBorderWidth);
         if (isChecked) {
-            mBorderPaint.setColor(mBorderColorChecked);
+            mPaint.setColor(mBorderColorChecked);
         } else {
-            mBorderPaint.setColor(mBorderColor);
+            mPaint.setColor(mBorderColor);
         }
-        canvas.drawRoundRect(mRect, radius, radius, mBorderPaint);
+        canvas.drawRoundRect(mRect, radius, radius, mPaint);
+        // 绘制文字
+        mPaint.setStyle(Paint.Style.FILL);
+        if (isChecked) {
+            mPaint.setColor(mTextColorChecked);
+            int padding = (mTagMode == MODE_ICON_CHECK_INVISIBLE && mIsChecked) ? 0 : mIconSize + mIconPadding;
+            int fontLen = mIsChecked ? mFontLenChecked : mFontLen;
+            canvas.drawText(mShowText,
+                    mIconGravity == Gravity.RIGHT ? (getWidth() - fontLen - padding) / 2
+                            : (getWidth() - fontLen - padding) / 2 + padding,
+                    getHeight() / 2 + mBaseLineDistance, mPaint);
+        } else {
+            mPaint.setColor(mTextColor);
+            int padding = mDecorateIcon == null ? 0 : mIconSize + mIconPadding;
+            canvas.drawText(mShowText,
+                    mIconGravity == Gravity.RIGHT ? (getWidth() - mFontLen - padding) / 2
+                            : (getWidth() - mFontLen - padding) / 2 + padding,
+                    getHeight() / 2 + mBaseLineDistance, mPaint);
+        }
+        // 绘制Icon
+        if (mTagMode == MODE_ICON_CHECK_CHANGE && mIsChecked && mDecorateIconChange != null) {
+            mDecorateIconChange.draw(canvas);
+        } else if (mTagMode == MODE_ICON_CHECK_INVISIBLE && mIsChecked) {
+            // Don't need to draw
+        } else if (mDecorateIcon != null) {
+            mDecorateIcon.setColorFilter(mPaint.getColor(), PorterDuff.Mode.SRC_IN);
+            mDecorateIcon.draw(canvas);
+        }
         // 绘制半透明遮罩
-        if (mIsTagPress && (!mIsPressFeedback || mIsChecked ||
-                (mBgColor == mBgColorChecked && mBorderColor == mBorderColorChecked && mTextColor == mTextColorChecked))) {
-            canvas.drawRoundRect(mRect, radius, radius, mScrimPaint);
+        if (mIsPressed && (mIsChecked || !mIsPressFeedback)) {
+            mPaint.setColor(mScrimColor);
+            canvas.drawRoundRect(mRect, radius, radius, mPaint);
         }
-
-        super.onDraw(canvas);
-    }
-
-    /**
-     * 调整内容，如果超出可显示的范围则做裁剪
-     */
-    private void _adjustText() {
-        if (mIsAdjusted) {
-            return;
-        }
-        mIsAdjusted = true;
-        // 获取最大可用宽度
-        int availableWidth;
-        if (mFitWidth == INVALID_VALUE) {
-            availableWidth = ((TagLayout) getParent()).getAvailableWidth();
-        } else {
-            availableWidth = mFitWidth;
-        }
-        mPaint.setTextSize(getTextSize());
-
-        // 计算字符串长度
-        float textWidth = mPaint.measureText(String.valueOf(mTagText));
-        if (mTagMode != MODE_CHANGE && mDecorateIcon != null) {
-            availableWidth -= MeasureUtils.getFontHeight(getTextSize()) + mIconPadding;
-        }
-        if (mTagMode == MODE_CHANGE) {
-            availableWidth -= MeasureUtils.getFontHeight(getTextSize()) + mIconPadding;
-            // 如果“换一换”三个字宽度超出，则改用一个"换"字
-            if (textWidth + mHorizontalPadding * 2 > availableWidth) {
-                textWidth = mPaint.measureText("换");
-                if (textWidth + mHorizontalPadding * 2 > availableWidth) {
-                    // 一个"换"字也超出就不显示字符,并把 DrawablePadding 清零让 Icon 居中
-                    setText("");
-                    mTagText = "";
-                    textWidth = 0;
-                    setCompoundDrawablePadding(0);
-                } else {
-                    setText("换");
-                    mTagText = "换";
-                }
-            }
-        }
-        // 如果可用宽度不够用，则做裁剪处理，末尾不3个.
-        else if (textWidth + mHorizontalPadding * 2 > availableWidth) {
-            float pointWidth = mPaint.measureText(".");
-            // 计算能显示的字体长度
-            float maxTextWidth = availableWidth - mHorizontalPadding * 2 - pointWidth * 3;
-            float tmpWidth = 0;
-            StringBuilder strBuilder = new StringBuilder();
-            for (int i = 0; i < mTagText.length(); i++) {
-                char c = mTagText.charAt(i);
-                float cWidth = mPaint.measureText(String.valueOf(c));
-                // 计算每个字符的宽度之和，如果超过能显示的长度则退出
-                if (tmpWidth + cWidth > maxTextWidth) {
-                    break;
-                }
-                strBuilder.append(c);
-                tmpWidth += cWidth;
-            }
-            // 末尾添加3个.并设置为显示字符
-            strBuilder.append("...");
-            setText(strBuilder.toString());
-            textWidth = mPaint.measureText(strBuilder.toString());
-        }
-
-        _initIcon(textWidth);
-    }
-
-    /**
-     * ==================================== 开放接口 ====================================
-     */
-
-    public int getBgColor() {
-        return mBgColor;
-    }
-
-    public void setBgColor(int bgColor) {
-        mBgColor = bgColor;
-    }
-
-    public int getBorderColor() {
-        return mBorderColor;
-    }
-
-    public void setBorderColor(int borderColor) {
-        mBorderColor = borderColor;
-    }
-
-    public int getOriTextColor() {
-        return mTextColor;
-    }
-
-    public void setOriTextColor(int textColor) {
-        mTextColor = textColor;
-        setTextColor(textColor);
-        if (mDecorateIcon != null) {
-            mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
-        }
-    }
-
-    public int getBgColorChecked() {
-        return mBgColorChecked;
-    }
-
-    public void setBgColorChecked(int bgColorChecked) {
-        mBgColorChecked = bgColorChecked;
-    }
-
-    public int getBorderColorChecked() {
-        return mBorderColorChecked;
-    }
-
-    public void setBorderColorChecked(int borderColorChecked) {
-        mBorderColorChecked = borderColorChecked;
-    }
-
-    public int getTextColorChecked() {
-        return mTextColorChecked;
-    }
-
-    public void setTextColorChecked(int textColorChecked) {
-        mTextColorChecked = textColorChecked;
-        if (mIsChecked) {
-            setTextColor(mTextColorChecked);
-        }
-    }
-
-    public float getBorderWidth() {
-        return mBorderWidth;
-    }
-
-    public void setBorderWidth(float borderWidth) {
-        mBorderWidth = borderWidth;
-        mBorderPaint.setStrokeWidth(mBorderWidth);
-    }
-
-    public float getRadius() {
-        return mRadius;
-    }
-
-    public void setRadius(float radius) {
-        mRadius = radius;
-    }
-
-    public int getHorizontalPadding() {
-        return mHorizontalPadding;
-    }
-
-    public void setHorizontalPadding(int horizontalPadding) {
-        mHorizontalPadding = horizontalPadding;
-        setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
-    }
-
-    public int getVerticalPadding() {
-        return mVerticalPadding;
-    }
-
-    public void setVerticalPadding(int verticalPadding) {
-        mVerticalPadding = verticalPadding;
-        setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
-    }
-
-    public CharSequence getTagText() {
-        return mTagText;
-    }
-
-    public void setTagText(CharSequence tagText) {
-        mTagText = tagText;
-        setText(tagText);
-        mIsAdjusted = false;
-    }
-
-    public boolean isPressFeedback() {
-        return mIsPressFeedback;
-    }
-
-    public void setPressFeedback(boolean pressFeedback) {
-        mIsPressFeedback = pressFeedback;
-    }
-
-    public CharSequence getTagTextChecked() {
-        return mTagTextChecked;
-    }
-
-    public void setTagTextChecked(CharSequence tagTextChecked) {
-        mTagTextChecked = tagTextChecked;
-        if (mIsChecked) {
-            setText(mTagTextChecked);
-        }
-    }
-
-    /**
-     * ==================================== 点击监听 ====================================
-     */
-
-    // 点击监听器
-    private OnTagClickListener mTagClickListener;
-    private OnTagLongClickListener mTagLongClickListener;
-    private OnTagCheckListener mTagCheckListener;
-
-    public void setTagClickListener(OnTagClickListener tagClickListener) {
-        mTagClickListener = tagClickListener;
-    }
-
-    public void setTagLongClickListener(OnTagLongClickListener onTagLongClickListener) {
-        mTagLongClickListener = onTagLongClickListener;
-    }
-
-    public void setTagCheckListener(OnTagCheckListener onTagCheckListener) {
-        mTagCheckListener = onTagCheckListener;
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (mTagMode == MODE_EDIT) {
-            return super.onTouchEvent(event);
+    protected void onDetachedFromWindow() {
+        if (mDecorateIcon != null && mDecorateIcon instanceof Animatable) {
+            ((Animatable)mDecorateIcon).stop();
         }
+        if (mDecorateIconChange != null && mDecorateIconChange instanceof Animatable) {
+            ((Animatable)mDecorateIconChange).stop();
+        }
+        super.onDetachedFromWindow();
+    }
+
+    /**
+     * ==================================== 触摸点击控制 ====================================
+     */
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
         switch (MotionEventCompat.getActionMasked(event)) {
             case MotionEvent.ACTION_DOWN:
-                mIsTagPress = true;
-                _switchIconColor(false);
+                mIsPressed = true;
+                invalidate();
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (mIsTagPress && !_isViewUnder(event.getX(), event.getY())) {
-                    mIsTagPress = false;
-                    _switchIconColor(false);
+                if (mIsPressed && !_isViewUnder(event.getX(), event.getY())) {
+                    mIsPressed = false;
+                    invalidate();
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -500,9 +429,9 @@ public class TagView extends TextView {
                     _toggleTagCheckStatus();
                 }
             case MotionEvent.ACTION_CANCEL:
-                if (mIsTagPress) {
-                    mIsTagPress = false;
-                    _switchIconColor(false);
+                if (mIsPressed) {
+                    mIsPressed = false;
+                    invalidate();
                 }
                 break;
         }
@@ -522,112 +451,11 @@ public class TagView extends TextView {
     }
 
     /**
-     * 点击监听器
-     */
-    public interface OnTagClickListener {
-        void onTagClick(int position, String text, @TagMode int tagMode);
-    }
-
-    public interface OnTagLongClickListener {
-        void onTagLongClick(int position, String text, @TagMode int tagMode);
-    }
-
-    public interface OnTagCheckListener {
-        void onTagCheck(int position, String text, boolean isChecked);
-    }
-
-    /**
-     * ==================================== 显示模式 ====================================
-     */
-
-    // 3种外形模式：圆角矩形、圆弧、直角矩形
-    public final static int SHAPE_ROUND_RECT = 101;
-    public final static int SHAPE_ARC = 102;
-    public final static int SHAPE_RECT = 103;
-    // 类型模式：正常、编辑、换一换、单选、多选、图标选中消失、图标选中切换
-    public final static int MODE_NORMAL = 201;
-    public final static int MODE_EDIT = 202;
-    public final static int MODE_CHANGE = 203;
-    public final static int MODE_SINGLE_CHOICE = 204;
-    public final static int MODE_MULTI_CHOICE = 205;
-    public final static int MODE_ICON_CHECK_INVISIBLE = 206;
-    public final static int MODE_ICON_CHECK_CHANGE = 207;
-
-    // 显示外形
-    private int mTagShape = SHAPE_ROUND_RECT;
-    // 显示类型
-    private int mTagMode = MODE_NORMAL;
-    // 装饰的icon
-    private Drawable mDecorateIcon;
-    private Drawable mIconCheckChange;
-    // icon和文件间距
-    private int mIconPadding = 0;
-    // icon的左偏移量和选中时左偏移量
-    private int mIconLeft = 0;
-    private int mIconLeftChecked = 0;
-    // icon大小
-    private int mIconSize = 0;
-    // 是否选中
-    private boolean mIsChecked = false;
-    // 是否自动切换选中状态，不使能可以灵活地选择切换，通过用于等待网络返回再做切换
-    private boolean mIsAutoToggleCheck = false;
-    // 是否初始化Icon
-    private boolean mIsInitIcon = false;
-    // 保存选中状态
-    private boolean mSaveChecked = false;
-    // 虚线路径
-    private PathEffect mPathEffect = new DashPathEffect(new float[]{10, 5}, 0);
-
-
-    public int getTagShape() {
-        return mTagShape;
-    }
-
-    public void setTagShape(@TagShape int tagShape) {
-        mTagShape = tagShape;
-    }
-
-    public int getTagMode() {
-        return mTagMode;
-    }
-
-    public void setTagMode(@TagMode int tagMode) {
-        mTagMode = tagMode;
-        if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE) {
-            setPressFeedback(true);
-            mIsAutoToggleCheck = true;
-        } else if (mTagMode == MODE_EDIT) {
-            _initEditMode();
-        }
-    }
-
-    public void setIconRes(int iconResId) {
-        mDecorateIcon = ContextCompat.getDrawable(getContext(), iconResId);
-    }
-
-    @Override
-    public void setCompoundDrawablePadding(int pad) {
-        mIconPadding = pad;
-        super.setCompoundDrawablePadding(pad);
-    }
-
-    public boolean isAutoToggleCheck() {
-        return mIsAutoToggleCheck;
-    }
-
-    public void setAutoToggleCheck(boolean autoToggleCheck) {
-        mIsAutoToggleCheck = autoToggleCheck;
-    }
-
-    /**
      * 切换tag选中状态
      */
     private void _toggleTagCheckStatus() {
         if (mIsAutoToggleCheck) {
-            _setTagCheckStatus(!mIsChecked);
-            if (mTagCheckListener != null) {
-                mTagCheckListener.onTagCheck(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mIsChecked);
-            }
+            setChecked(!mIsChecked);
         }
     }
 
@@ -643,7 +471,7 @@ public class TagView extends TextView {
     public void setChecked(boolean checked) {
         _setTagCheckStatus(checked);
         if (mTagCheckListener != null) {
-            mTagCheckListener.onTagCheck(getTag() == null ? 0 : (int) getTag(), String.valueOf(mTagText), mIsChecked);
+            mTagCheckListener.onTagCheck(getTag() == null ? 0 : (int) getTag(), mText, mIsChecked);
         }
     }
 
@@ -655,165 +483,469 @@ public class TagView extends TextView {
     }
 
     private void _setTagCheckStatus(boolean isChecked) {
+        if (mIsChecked == isChecked) {
+            return;
+        }
         mIsChecked = isChecked;
-        if (mTagTextChecked != null) {
-            setText(mIsChecked ? mTagTextChecked : mTagText);
-            if (mDecorateIcon != null) {
-                mDecorateIcon.setBounds(mIsChecked ? mIconLeftChecked : mIconLeft, 0,
-                        mIconSize + (mIsChecked ? mIconLeftChecked : mIconLeft), mIconSize);
-            }
-        }
-        _switchIconStatus();
-        _switchIconColor(true);
-        invalidate();
+        // 注意，这里用 requestLayout() 而不是只用 invalidate()，因为 invalidate() 没法回调 onMeasure() 进行测量，
+        // 如果控件自适应大小的话是有可能改变大小的，所以加上 requestLayout()
+//        requestLayout();
+//        invalidate();
+        updateView();
     }
 
-
     /**
-     * 初始化 ICON
+     * 裁剪Text
      *
-     * @param textWidth
+     * @param oriText
+     * @param paint
+     * @param maxTextWidth
+     * @return
      */
-    private void _initIcon(float textWidth) {
-        if (!mIsInitIcon && (mTagMode == MODE_CHANGE || mDecorateIcon != null)) {
-            mIconSize = MeasureUtils.getFontHeight(getTextSize());
-            mIconLeft = 0;
-            if (textWidth == INVALID_VALUE) {
-                mPaint.setTextSize(getTextSize());
-                textWidth = mPaint.measureText(String.valueOf(getText()));
-                mIconLeft = (int) ((getMeasuredWidth() - textWidth - mIconSize) / 2) - mHorizontalPadding - mIconPadding / 2;
-            } else if (mFitWidth != INVALID_VALUE) {
-                mIconLeft = (int) ((getMeasuredWidth() - textWidth - mIconSize) / 2) - mHorizontalPadding - mIconPadding / 2;
+    private String _clipShowText(String oriText, Paint paint, float maxTextWidth) {
+        float tmpWidth = 0;
+        StringBuilder strBuilder = new StringBuilder();
+        for (int i = 0; i < oriText.length(); i++) {
+            char c = oriText.charAt(i);
+            float cWidth = paint.measureText(String.valueOf(c));
+            // 计算每个字符的宽度之和，如果超过能显示的长度则退出
+            if (tmpWidth + cWidth > maxTextWidth) {
+                break;
             }
-            if (mIconLeft < 0) {
-                // 正常自适应大小时mIconLeft=0，固定大小时大于0，小于0需要处理下
-                mIconLeft = 0;
-            }
-            if (!TextUtils.isEmpty(mTagTextChecked)) {
-                textWidth = mPaint.measureText(String.valueOf(mTagTextChecked));
-                mIconLeftChecked = (int) ((getMeasuredWidth() - textWidth - mIconSize) / 2) - mHorizontalPadding - mIconPadding / 2;
-                if (mIconLeftChecked < 0) {
-                    mIconLeftChecked = 0;
+            strBuilder.append(c);
+            tmpWidth += cWidth;
+        }
+        // 末尾添加3个.并设置为显示字符
+        strBuilder.append("...");
+        return strBuilder.toString();
+    }
+
+    /**
+     * ==================================== 接口 ====================================
+     * 带有Lazy的后缀统一不调用 requestLayout() 和 invalidate()，避免多次绘制
+     */
+
+    public int getTagShape() {
+        return mTagShape;
+    }
+
+    public void setTagShape(int tagShape) {
+        mTagShape = tagShape;
+        updateView();
+    }
+
+    public void setTagShapeLazy(int tagShape) {
+        mTagShape = tagShape;
+    }
+
+    public int getTagMode() {
+        return mTagMode;
+    }
+
+    public void setTagMode(int tagMode) {
+        mTagMode = tagMode;
+        if (mTagMode == MODE_CHANGE) {
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
+            mDecorateIcon = new RotateDrawable(bitmap);
+            mDecorateIcon.setCallback(new SimpleCallBack() {
+                @Override
+                public void invalidateDrawable(Drawable drawable) {
+                    invalidate();
                 }
-            }
-            if (mTagMode == MODE_CHANGE) {
-                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
-                mDecorateIcon = new RotateDrawable(bitmap, mIconLeft);
-            }
-            if (mDecorateIcon != null) {
-                mDecorateIcon.setBounds(mIconLeft, 0, mIconSize + mIconLeft, mIconSize);
-                mDecorateIcon.setColorFilter(mTextColor, PorterDuff.Mode.SRC_IN);
-                _switchIconStatus();
-            }
-            if (mIconCheckChange != null) {
-                mIconCheckChange.setBounds(mIconLeft, 0, mIconSize + mIconLeft, mIconSize);
-                mIconCheckChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
-            }
-            mIsInitIcon = true;
+            });
         }
-        if (mIsChecked && !mIsHandleOriChecked) {
-            _setTagCheckStatus(mIsChecked);
-            mIsHandleOriChecked = true;
+        updateView();
+    }
+
+    public void setTagModeLazy(int tagMode) {
+        mTagMode = tagMode;
+        if (mTagMode == MODE_SINGLE_CHOICE || mTagMode == MODE_MULTI_CHOICE) {
+            setPressFeedback(true);
+            mIsAutoToggleCheck = true;
+        } else if (mTagMode == MODE_CHANGE) {
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
+            mDecorateIcon = new RotateDrawable(bitmap);
+            mDecorateIcon.setCallback(new SimpleCallBack() {
+                @Override
+                public void invalidateDrawable(Drawable drawable) {
+                    invalidate();
+                }
+            });
         }
     }
 
-    /**
-     * 切换Icon状态
-     */
-    private void _switchIconStatus() {
-        if (mDecorateIcon != null) {
-            if (mTagMode == MODE_ICON_CHECK_INVISIBLE) {
-                setCompoundDrawables(mIsChecked ? null : mDecorateIcon, null, null, null);
-            } else if (mTagMode == MODE_ICON_CHECK_CHANGE) {
-                setCompoundDrawables(mIsChecked ? mIconCheckChange : mDecorateIcon, null, null, null);
-            } else {
-                setCompoundDrawables(mDecorateIcon, null, null, null);
-            }
-        }
+    public int getBgColor() {
+        return mBgColor;
     }
 
-    /**
-     * 颜色切换
-     * @param isForce 是否强制设置颜色
-     */
-    private void _switchIconColor(boolean isForce) {
-        if (mIsPressFeedback || isForce) {
-            boolean isCheck = mIsChecked || mIsTagPress;
-            setTextColor(isCheck ? mTextColorChecked : mTextColor);
-            if (mDecorateIcon != null) {
-                mDecorateIcon.setColorFilter(isCheck ? mTextColorChecked : mTextColor, PorterDuff.Mode.SRC_IN);
-            }
+    public void setBgColor(int bgColor) {
+        mBgColor = bgColor;
+        // 设置颜色调用这个就行，回调onDraw()
+        invalidate();
+    }
+
+    public void setBgColorLazy(int bgColor) {
+        mBgColor = bgColor;
+    }
+
+    public int getBorderColor() {
+        return mBorderColor;
+    }
+
+    public void setBorderColor(int borderColor) {
+        mBorderColor = borderColor;
+        invalidate();
+    }
+
+    public void setBorderColorLazy(int borderColor) {
+        mBorderColor = borderColor;
+    }
+
+    public int getTextColor() {
+        return mTextColor;
+    }
+
+    public void setTextColor(int textColor) {
+        mTextColor = textColor;
+        invalidate();
+    }
+
+    public void setTextColorLazy(int textColor) {
+        mTextColor = textColor;
+    }
+
+    public int getBgColorChecked() {
+        return mBgColorChecked;
+    }
+
+    public void setBgColorChecked(int bgColorChecked) {
+        mBgColorChecked = bgColorChecked;
+        invalidate();
+    }
+
+    public void setBgColorCheckedLazy(int bgColorChecked) {
+        mBgColorChecked = bgColorChecked;
+    }
+
+    public int getBorderColorChecked() {
+        return mBorderColorChecked;
+    }
+
+    public void setBorderColorChecked(int borderColorChecked) {
+        mBorderColorChecked = borderColorChecked;
+        invalidate();
+    }
+
+    public void setBorderColorCheckedLazy(int borderColorChecked) {
+        mBorderColorChecked = borderColorChecked;
+    }
+
+    public int getTextColorChecked() {
+        return mTextColorChecked;
+    }
+
+    public void setTextColorChecked(int textColorChecked) {
+        mTextColorChecked = textColorChecked;
+        if (mDecorateIconChange != null) {
+            mDecorateIconChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
         }
         invalidate();
     }
 
-    /**
-     * 初始化编辑模式
-     */
-    private void _initEditMode() {
-        setClickable(true);
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-        setHint("添加标签");
-        mBorderPaint.setPathEffect(mPathEffect);
-        mBgColor = Color.WHITE;
-        setHintTextColor(Color.parseColor("#ffaaaaaa"));
-        setOriTextColor(Color.BLACK);
-        setMovementMethod(ArrowKeyMovementMethod.getInstance());
-        requestFocus();
-        setOnEditorActionListener(new OnEditorActionListener() {
+    public void setTextColorCheckedLazy(int textColorChecked) {
+        mTextColorChecked = textColorChecked;
+        if (mDecorateIconChange != null) {
+            mDecorateIconChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
+        }
+    }
+
+    public int getScrimColor() {
+        return mScrimColor;
+    }
+
+    public void setScrimColor(int scrimColor) {
+        mScrimColor = scrimColor;
+        invalidate();
+    }
+
+    public void setScrimColorLazy(int scrimColor) {
+        mScrimColor = scrimColor;
+    }
+
+    public float getTextSize() {
+        return mTextSize;
+    }
+
+    public void setTextSize(float textSize) {
+        mTextSize = textSize;
+        updateView();
+    }
+
+    public void setTextSizeLazy(float textSize) {
+        mTextSize = textSize;
+    }
+
+    public float getBorderWidth() {
+        return mBorderWidth;
+    }
+
+    public void setBorderWidth(float borderWidth) {
+        mBorderWidth = borderWidth;
+        invalidate();
+    }
+
+    public void setBorderWidthLazy(float borderWidth) {
+        mBorderWidth = borderWidth;
+    }
+
+    public float getRadius() {
+        return mRadius;
+    }
+
+    public void setRadius(float radius) {
+        mRadius = radius;
+        invalidate();
+    }
+
+    public void setRadiusLazy(float radius) {
+        mRadius = radius;
+    }
+
+    public String getText() {
+        return mText;
+    }
+
+    public void setText(String text) {
+        mText = text;
+        updateView();
+    }
+
+    public void setTextLazy(String text) {
+        mText = text;
+    }
+
+    public String getTextChecked() {
+        return mTextChecked;
+    }
+
+    public void setTextChecked(String textChecked) {
+        mTextChecked = textChecked;
+        updateView();
+    }
+
+    public void setTextCheckedLazy(String textChecked) {
+        mTextChecked = textChecked;
+    }
+
+    public int getHorizontalPadding() {
+        return mHorizontalPadding;
+    }
+
+    public void setHorizontalPaddingLazy(int horizontalPadding) {
+        mHorizontalPadding = horizontalPadding;
+    }
+
+    public void setHorizontalPadding(int horizontalPadding) {
+        mHorizontalPadding = horizontalPadding;
+        updateView();
+    }
+
+    public int getVerticalPadding() {
+        return mVerticalPadding;
+    }
+
+    public void setVerticalPaddingLazy(int verticalPadding) {
+        mVerticalPadding = verticalPadding;
+    }
+
+    public void setVerticalPadding(int verticalPadding) {
+        mVerticalPadding = verticalPadding;
+        updateView();
+    }
+
+    public Drawable getDecorateIcon() {
+        return mDecorateIcon;
+    }
+
+    public void setDecorateIconLazy(Drawable decorateIcon) {
+        mDecorateIcon = decorateIcon;
+    }
+
+    public void setDecorateIcon(Drawable decorateIcon) {
+        mDecorateIcon = decorateIcon;
+        updateView();
+    }
+
+    public void setDecorateIconWithAnimator(Drawable decorateIcon){
+        mDecorateIcon = decorateIcon;
+        mDecorateIcon.setCallback(new SimpleCallBack() {
             @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_NULL
-                        && (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
-                        && event.getAction() == KeyEvent.ACTION_DOWN)) {
-                    if (!TextUtils.isEmpty(getText())) {
-                        ((TagLayout) getParent()).addTag(getText().toString());
-                        setText("");
-                        _closeSoftInput();
-                    }
-                    return true;
-                }
-                return false;
+            public void invalidateDrawable(Drawable drawable) {
+                invalidate();
             }
         });
+        updateView();
+    }
+
+    public Drawable getDecorateIconChange() {
+        return mDecorateIconChange;
+    }
+
+    public void setDecorateIconChange(Drawable decorateIconChange) {
+        mDecorateIconChange = decorateIconChange;
+        updateView();
+    }
+
+    public void setDecorateIconChangeWithAnimator(Drawable decorateIcon){
+        mDecorateIconChange = decorateIcon;
+        mDecorateIconChange.setCallback(new SimpleCallBack() {
+            @Override
+            public void invalidateDrawable(Drawable drawable) {
+                invalidate();
+            }
+        });
+        updateView();
+    }
+
+    public void setDecorateIconChangeLazy(Drawable decorateIconChange) {
+        mDecorateIconChange = decorateIconChange;
+    }
+
+    public int getIconPadding() {
+        return mIconPadding;
+    }
+
+    public void setIconPadding(int iconPadding) {
+        mIconPadding = iconPadding;
+        updateView();
+    }
+
+    public void setIconPaddingLazy(int iconPadding) {
+        mIconPadding = iconPadding;
+    }
+
+
+    public boolean isAutoToggleCheck() {
+        return mIsAutoToggleCheck;
+    }
+
+    public void setAutoToggleCheck(boolean autoToggleCheck) {
+        mIsAutoToggleCheck = autoToggleCheck;
+    }
+
+    public boolean isPressFeedback() {
+        return mIsPressFeedback;
+    }
+
+    public void setPressFeedback(boolean pressFeedback) {
+        mIsPressFeedback = pressFeedback;
     }
 
     /**
-     * 离开编辑模式
+     * 调用这些接口进行属性设置如果最后可能会改变按钮的大小的话最后调用一下这个接口，以刷新界面，建议属性直接在布局里设置
+     * 只需要回调onDraw()的话调用invalidate()就可以了
      */
-    public void exitEditMode() {
-        if (mTagMode == MODE_EDIT) {
-            clearFocus();
-            setFocusable(false);
-            setFocusableInTouchMode(false);
-            setHint(null);
-            setMovementMethod(null);
-            _closeSoftInput();
+    public void updateView() {
+        requestLayout();
+        invalidate();
+    }
+
+    /**
+     * ==================================== 点击监听 ====================================
+     */
+
+    public OnTagClickListener getTagClickListener() {
+        return mTagClickListener;
+    }
+
+    public void setTagClickListener(OnTagClickListener tagClickListener) {
+        mTagClickListener = tagClickListener;
+    }
+
+    public OnTagLongClickListener getTagLongClickListener() {
+        return mTagLongClickListener;
+    }
+
+    public void setTagLongClickListener(OnTagLongClickListener tagLongClickListener) {
+        mTagLongClickListener = tagLongClickListener;
+    }
+
+    public OnTagCheckListener getTagCheckListener() {
+        return mTagCheckListener;
+    }
+
+    public void setTagCheckListener(OnTagCheckListener tagCheckListener) {
+        mTagCheckListener = tagCheckListener;
+    }
+
+    /**
+     * ==================================== 状态保存 ====================================
+     */
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        SavedState state = new SavedState(superState);
+        state.isChecked = mIsChecked;
+        return state;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+        SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        mIsChecked = ss.isChecked;
+    }
+
+    public static class SavedState extends BaseSavedState {
+
+        boolean isChecked;
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeInt(isChecked ? 1 : 0);
+        }
+
+        @SuppressWarnings("hiding")
+        public static final Creator<SavedState> CREATOR
+                = new Creator<SavedState>() {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+
+        private SavedState(Parcel in) {
+            super(in);
+            isChecked = in.readInt() == 1;
         }
     }
 
     /**
-     * 关闭软键盘
+     * ==================================== 监听器 ====================================
      */
-    private void _closeSoftInput() {
-        InputMethodManager inputMethodManager = (InputMethodManager) getContext()
-                .getSystemService(Context.INPUT_METHOD_SERVICE);
-        //如果软键盘已经开启
-        if (inputMethodManager.isActive()) {
-            inputMethodManager.hideSoftInputFromWindow(getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-        }
+
+    public interface OnTagClickListener {
+        void onTagClick(int position, String text, @TagMode int tagMode);
     }
 
-    @IntDef({SHAPE_ROUND_RECT, SHAPE_ARC, SHAPE_RECT})
-    @Retention(RetentionPolicy.SOURCE)
-    @Target(ElementType.PARAMETER)
-    public @interface TagShape {
+    public interface OnTagLongClickListener {
+        void onTagLongClick(int position, String text, @TagMode int tagMode);
     }
 
-    @IntDef({MODE_NORMAL, MODE_EDIT, MODE_CHANGE, MODE_SINGLE_CHOICE, MODE_MULTI_CHOICE, MODE_ICON_CHECK_INVISIBLE, MODE_ICON_CHECK_CHANGE})
-    @Retention(RetentionPolicy.SOURCE)
-    @Target(ElementType.PARAMETER)
-    public @interface TagMode {
+    public interface OnTagCheckListener {
+        void onTagCheck(int position, String text, boolean isChecked);
     }
 }

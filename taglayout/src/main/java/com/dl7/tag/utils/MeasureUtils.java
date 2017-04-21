@@ -25,6 +25,11 @@ public class MeasureUtils {
                 context.getResources().getDisplayMetrics());
     }
 
+    public static float px2sp(Context context, float pxValue) {
+        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
+        return pxValue / fontScale;
+    }
+
     /**
      * 获取字体高度
      * @param fontSize
