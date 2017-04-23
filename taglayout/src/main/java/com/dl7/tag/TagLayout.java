@@ -594,16 +594,14 @@ public class TagLayout extends ViewGroup {
 //            Toast.makeText(getContext(), "Invalid position", Toast.LENGTH_SHORT).show();
             return;
         }
+        int pos = mTagMode == TagView.MODE_CHANGE ? position + 1 : position;
         if (mTagMode == TagView.MODE_CHANGE || (mTagMode == TagView.MODE_EDIT && mFitTagEditView != null)) {
             if (position == getChildCount() - 1) {
                 // 最后一项为固定项不删除
                 return;
             }
             // 第0项为固定项
-            mTagViews.remove(position + 1);
-        } else if (mTagMode == TagView.MODE_EDIT) {
-            // 第0项为固定项
-            mTagViews.remove(position + 1);
+            mTagViews.remove(pos);
         } else {
             mTagViews.remove(position);
         }

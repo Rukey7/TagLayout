@@ -10,7 +10,6 @@ import android.graphics.RectF;
 import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.ViewParent;
@@ -133,7 +132,6 @@ public class TagEditView extends TextView {
                         && (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
                         && event.getAction() == KeyEvent.ACTION_DOWN)) {
                     if (!TextUtils.isEmpty(getText())) {
-                        Log.e("TagEditView", getText().toString());
                         ((TagLayout) getParent()).addTag(getText().toString());
                         setText("");
                         _closeSoftInput();
@@ -188,10 +186,18 @@ public class TagEditView extends TextView {
 
     public void setHorizontalPadding(int horizontalPadding) {
         mHorizontalPadding = horizontalPadding;
+        setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
     }
 
     public void setVerticalPadding(int verticalPadding) {
         mVerticalPadding = verticalPadding;
+        setPadding(mHorizontalPadding, mVerticalPadding, mHorizontalPadding, mVerticalPadding);
+    }
+
+    @Override
+    public void setTextColor(int color) {
+        super.setTextColor(color);
+        setHintTextColor(color);
     }
 
     /**

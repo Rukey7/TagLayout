@@ -6,6 +6,8 @@ import android.os.Message;
 import android.util.SparseIntArray;
 
 import com.dl7.tag.TagView;
+import com.dl7.taglayout.drawable.CircleDrawable;
+import com.dl7.taglayout.drawable.MultiCircleDrawable;
 import com.dl7.taglayout.utils.RxHelper;
 import com.dl7.taglayout.utils.ToastUtils;
 import com.trello.rxlifecycle.android.ActivityEvent;
@@ -21,6 +23,8 @@ public class TagViewActivity extends RxAppCompatActivity {
     private TagView mTagGetCode;
     private TagView mTagSkip;
     private TagView mTagSkip2;
+    private TagView mTagSingleCircle;
+    private TagView mTagMultiCircle;
 
     private int mCountNum = 5;
     private Handler mHandler = new Handler() {
@@ -141,6 +145,11 @@ public class TagViewActivity extends RxAppCompatActivity {
             }
         });
         mHandler.postDelayed(mRunnable, 1000);
+        //
+        mTagSingleCircle = (TagView) findViewById(R.id.tag_single_circle);
+        mTagSingleCircle.setDecorateIcon(new CircleDrawable());
+        mTagMultiCircle = (TagView) findViewById(R.id.tag_multi_circle);
+        mTagMultiCircle.setDecorateIcon(new MultiCircleDrawable());
     }
 
     private boolean _isClickedNow(int id) {
@@ -156,7 +165,7 @@ public class TagViewActivity extends RxAppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        mHandler.removeCallbacks(mRunnable);
+        mHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
 }

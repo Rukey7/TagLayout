@@ -1,52 +1,67 @@
-package com.dl7.tag.drawable;
+package com.dl7.taglayout.drawable;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
-import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
-import android.view.animation.AccelerateDecelerateInterpolator;
-
-import com.dl7.tag.utils.BitmapUtils;
+import android.util.Property;
 
 /**
- * Created by Rukey7 on 2016/12/5.
- * 旋转动画 Drawable
+ * Created by long on 2016/7/2.
+ * 圆圈Drawable
  */
-public class RotateDrawable extends Drawable implements Animatable {
+public class CircleDrawable extends Drawable implements Animatable {
 
     private Paint mPaint;
-    // 绘制的矩形框
-    private RectF mRect = new RectF();
     // 动画控制
     private ValueAnimator mValueAnimator;
-    // 旋转角度
-    private float mRotate;
-    // icon
-    private Bitmap mBitmap;
-    // 偏移
-    private int mTranslationX;
-    private int mTranslationY;
+    // 扩散半径
+    private int mRadius;
+    // 绘制的矩形框
+    private RectF mRect = new RectF();
+    // 动画启动延迟时间
+    private int mStartDelay;
 
+    // 自定义一个扩散半径属性
+    Property<CircleDrawable, Integer> mRadiusProperty = new Property<CircleDrawable, Integer>(Integer.class, "radius") {
+        @Override
+        public void set(CircleDrawable object, Integer value) {
+            object.setRadius(value);
+        }
 
-    public RotateDrawable(Bitmap bitmap) {
-        mBitmap = bitmap;
-        mPaint = new Paint();
-        mPaint.setAntiAlias(true);
+        @Override
+        public Integer get(CircleDrawable object) {
+            return object.getRadius();
+        }
+    };
+    public int getRadius() {
+        return mRadius;
     }
+    public void setRadius(int radius) {
+        mRadius = radius;
+    }
+
+
+    public CircleDrawable() {
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPaint.setColor(Color.WHITE);
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setStrokeWidth(2);
+    }
+
 
     @Override
     public void draw(Canvas canvas) {
-        canvas.translate(mTranslationX, mTranslationY);
-        canvas.rotate(mRotate, mRect.width() / 2, mRect.height() / 2);
-        canvas.drawPaint(mPaint);
+        // 绘制圆圈
+        canvas.drawCircle(mRect.centerX(), mRect.centerY(), mRadius, mPaint);
     }
 
     @Override
@@ -68,34 +83,26 @@ public class RotateDrawable extends Drawable implements Animatable {
     protected void onBoundsChange(Rect bounds) {
         super.onBoundsChange(bounds);
         mRect.set(_clipSquare(bounds));
-        mTranslationX = (int) mRect.left;
-        mTranslationY = (int) mRect.top;
-        // 缩放 Bitmap
-        Bitmap zoom = BitmapUtils.zoom(mBitmap, bounds.width(), bounds.height());
-        BitmapShader bitmapShader = new BitmapShader(zoom, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-        mPaint.setShader(bitmapShader);
         if (isRunning()) {
             stop();
         }
-        // 设置动画
-        mValueAnimator = ValueAnimator.ofFloat(0, 2880).setDuration(2000);
+        // 计算最大半径
+        int maxRadius = (int) ((mRect.right - mRect.left) / 2);
+        // 控制扩散半径的属性变化
+        PropertyValuesHolder radiusHolder = PropertyValuesHolder.ofInt(mRadiusProperty, 0, maxRadius);
+        // 控制透明度的属性变化
+        PropertyValuesHolder alphaHolder = PropertyValuesHolder.ofInt("alpha", 255, 0);
+        mValueAnimator = ObjectAnimator.ofPropertyValuesHolder(this, radiusHolder, alphaHolder);
+        mValueAnimator.setStartDelay(mStartDelay);
+        mValueAnimator.setDuration(1200);
         mValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            boolean isOver = false;
-
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                mRotate = (float) animation.getAnimatedValue();
-                if (mRotate <= 2160) {
-                    isOver = false;
-                } else if (!isOver) {
-                    isOver = true;
-                    mRotate = 2160;
-                }
+                // 监听属性动画并进行重绘
                 invalidateSelf();
             }
         });
         // 设置动画无限循环
-        mValueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         mValueAnimator.setRepeatMode(ValueAnimator.RESTART);
         mValueAnimator.setRepeatCount(ValueAnimator.INFINITE);
         start();
@@ -121,9 +128,7 @@ public class RotateDrawable extends Drawable implements Animatable {
         );
     }
 
-    /**
-     * ==================================== 显示模式 ====================================
-     */
+    /************************************************************/
 
     @Override
     public void start() {
@@ -140,4 +145,7 @@ public class RotateDrawable extends Drawable implements Animatable {
         return mValueAnimator != null && mValueAnimator.isRunning();
     }
 
+    public void setAnimatorDelay(int startDelay) {
+        mStartDelay = startDelay;
+    }
 }

@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-
     }
 
     private void initView() {
@@ -38,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (mTagWords[3].equals(text)) {
                     startActivity(new Intent(MainActivity.this, TagChangeActivity.class));
                 } else if (mTagWords[4].equals(text)) {
-                    startActivity(new Intent(MainActivity.this, TestActivity.class));
+                    startActivity(new Intent(MainActivity.this, TagViewActivity.class));
                 }
             }
         });

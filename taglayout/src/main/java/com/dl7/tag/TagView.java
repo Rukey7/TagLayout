@@ -23,7 +23,6 @@ import android.view.View;
 import android.view.ViewParent;
 
 import com.dl7.tag.drawable.RotateDrawable;
-import com.dl7.tag.drawable.SimpleCallBack;
 import com.dl7.tag.utils.MeasureUtils;
 
 import java.lang.annotation.ElementType;
@@ -195,11 +194,12 @@ public class TagView extends View {
         if (mTagMode == MODE_ICON_CHECK_CHANGE && mDecorateIconChange == null) {
             throw new RuntimeException("You must set the drawable by 'tag_icon_change' property in MODE_ICON_CHECK_CHANGE mode");
         }
-        // 如果没有图标则把 mIconPadding 设为0
-        if (mDecorateIcon == null && mDecorateIconChange == null) {
-            mIconPadding = 0;
-        } else if (mDecorateIconChange != null) {
+        if (mDecorateIcon != null) {
+            mDecorateIcon.setCallback(this);
+        }
+        if (mDecorateIconChange != null) {
             mDecorateIconChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
+            mDecorateIconChange.setCallback(this);
         }
         mRect = new RectF();
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -400,12 +400,25 @@ public class TagView extends View {
     protected void onDetachedFromWindow() {
         if (mDecorateIcon != null && mDecorateIcon instanceof Animatable) {
             ((Animatable)mDecorateIcon).stop();
+            mDecorateIcon.setCallback(null);
         }
         if (mDecorateIconChange != null && mDecorateIconChange instanceof Animatable) {
             ((Animatable)mDecorateIconChange).stop();
+            mDecorateIconChange.setCallback(null);
         }
         super.onDetachedFromWindow();
     }
+
+    @Override
+    public void invalidateDrawable(Drawable drawable) {
+        if ((mDecorateIcon != null && mDecorateIcon instanceof Animatable) ||
+                (mDecorateIconChange != null && mDecorateIconChange instanceof Animatable)) {
+            postInvalidate();
+        } else {
+            super.invalidateDrawable(drawable);
+        }
+    }
+
 
     /**
      * ==================================== 触摸点击控制 ====================================
@@ -547,12 +560,7 @@ public class TagView extends View {
         if (mTagMode == MODE_CHANGE) {
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
             mDecorateIcon = new RotateDrawable(bitmap);
-            mDecorateIcon.setCallback(new SimpleCallBack() {
-                @Override
-                public void invalidateDrawable(Drawable drawable) {
-                    invalidate();
-                }
-            });
+            mDecorateIcon.setCallback(this);
         }
         updateView();
     }
@@ -565,12 +573,7 @@ public class TagView extends View {
         } else if (mTagMode == MODE_CHANGE) {
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_change);
             mDecorateIcon = new RotateDrawable(bitmap);
-            mDecorateIcon.setCallback(new SimpleCallBack() {
-                @Override
-                public void invalidateDrawable(Drawable drawable) {
-                    invalidate();
-                }
-            });
+            mDecorateIcon.setCallback(this);
         }
     }
 
@@ -769,21 +772,12 @@ public class TagView extends View {
 
     public void setDecorateIconLazy(Drawable decorateIcon) {
         mDecorateIcon = decorateIcon;
+        mDecorateIcon.setCallback(this);
     }
 
     public void setDecorateIcon(Drawable decorateIcon) {
         mDecorateIcon = decorateIcon;
-        updateView();
-    }
-
-    public void setDecorateIconWithAnimator(Drawable decorateIcon){
-        mDecorateIcon = decorateIcon;
-        mDecorateIcon.setCallback(new SimpleCallBack() {
-            @Override
-            public void invalidateDrawable(Drawable drawable) {
-                invalidate();
-            }
-        });
+        mDecorateIcon.setCallback(this);
         updateView();
     }
 
@@ -793,22 +787,15 @@ public class TagView extends View {
 
     public void setDecorateIconChange(Drawable decorateIconChange) {
         mDecorateIconChange = decorateIconChange;
-        updateView();
-    }
-
-    public void setDecorateIconChangeWithAnimator(Drawable decorateIcon){
-        mDecorateIconChange = decorateIcon;
-        mDecorateIconChange.setCallback(new SimpleCallBack() {
-            @Override
-            public void invalidateDrawable(Drawable drawable) {
-                invalidate();
-            }
-        });
+        mDecorateIconChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
+        mDecorateIconChange.setCallback(this);
         updateView();
     }
 
     public void setDecorateIconChangeLazy(Drawable decorateIconChange) {
         mDecorateIconChange = decorateIconChange;
+        mDecorateIconChange.setColorFilter(mTextColorChecked, PorterDuff.Mode.SRC_IN);
+        mDecorateIconChange.setCallback(this);
     }
 
     public int getIconPadding() {
