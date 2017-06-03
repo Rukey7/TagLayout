@@ -102,6 +102,7 @@ compile 'com.github.Rukey7:TagLayout:{lastest-version}'
 | tag_view_horizontal_padding | dimension | 标签水平填充
 | tag_view_icon_padding | dimension | 标签icon和文字的间隔
 | tag_view_text_size | dimension | 标签字体大小(1.0.5由float改为dimension)
+| tag_layout_horizontal_reverse | boolean | 水平反向排列(RTL)
 
 标签属性：
 
@@ -139,6 +140,10 @@ compile 'com.github.Rukey7:TagLayout:{lastest-version}'
 1、重写TagView直接继承View，简化了代码逻辑，不再支持TextView的android:text和android:textSize属性，替换为自定义的tag_text和tag_text_size属性；
 
 2、增加了tag_gravity属性来设置Drawable的放置位置，只支持left和right；
+
+##### 1.0.5 -> 1.0.6
+
+1、添加水平反向排列属性(tag_layout_horizontal_reverse)；
 
 
 License
