@@ -73,6 +73,8 @@ public class TagLayout extends ViewGroup {
     private TagEditView mFitTagEditView;
     // 使能随机颜色
     private boolean mEnableRandomColor;
+    // 是否反转水平布局
+    private boolean mIsHorizontalReverse;
 
 
     public TagLayout(Context context) {
@@ -125,6 +127,7 @@ public class TagLayout extends ViewGroup {
             mTagHorizontalPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_horizontal_padding, MeasureUtils.dp2px(context, 5f));
             mTagVerticalPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_vertical_padding, MeasureUtils.dp2px(context, 5f));
             mIconPadding = (int) a.getDimension(R.styleable.TagLayout_tag_view_icon_padding, MeasureUtils.dp2px(context, 3f));
+            mIsHorizontalReverse = a.getBoolean(R.styleable.TagLayout_tag_layout_horizontal_reverse, false);
         } finally {
             a.recycle();
         }
@@ -216,7 +219,13 @@ public class TagLayout extends ViewGroup {
         // 当前布局使用的top坐标
         int curTop = getPaddingTop();
         // 当前布局使用的left坐标
-        int curLeft = getPaddingLeft();
+        int curLeft;
+        final int maxRight = mAvailableWidth + getPaddingLeft();
+        if (mIsHorizontalReverse) {
+            curLeft = maxRight;
+        } else {
+            curLeft = getPaddingLeft();
+        }
         int maxHeight = 0;
         for (int i = 0; i < childCount; i++) {
             View child = getChildAt(i);
@@ -230,16 +239,30 @@ public class TagLayout extends ViewGroup {
             int width = child.getMeasuredWidth();
             int height = child.getMeasuredHeight();
             // 超过一行做换行操作
-            if (width + curLeft > mAvailableWidth + getPaddingLeft()) {
-                curLeft = getPaddingLeft();
-                // 计算top坐标，要加上垂直间隙
-                curTop += maxHeight + mVerticalInterval;
-                maxHeight = child.getMeasuredHeight();
+            if (mIsHorizontalReverse) {
+                curLeft -= width;
+                if (getPaddingLeft() > curLeft) {
+                    curLeft = maxRight - width;
+                    curLeft = Math.max(curLeft, getPaddingLeft());
+                    // 计算top坐标，要加上垂直间隙
+                    curTop += maxHeight + mVerticalInterval;
+                    maxHeight = child.getMeasuredHeight();
+                }
+                // 设置子视图布局
+                child.layout(curLeft, curTop, curLeft + width, curTop + height);
+                curLeft -= mHorizontalInterval;
+            } else {
+                if (width + curLeft > maxRight) {
+                    curLeft = getPaddingLeft();
+                    // 计算top坐标，要加上垂直间隙
+                    curTop += maxHeight + mVerticalInterval;
+                    maxHeight = child.getMeasuredHeight();
+                }
+                // 设置子视图布局
+                child.layout(curLeft, curTop, curLeft + width, curTop + height);
+                // 计算left坐标，要加上水平间隙
+                curLeft += width + mHorizontalInterval;
             }
-            // 设置子视图布局
-            child.layout(curLeft, curTop, curLeft + width, curTop + height);
-            // 计算left坐标，要加上水平间隙
-            curLeft += width + mHorizontalInterval;
         }
     }
 

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.dl7.taglayout.TagReverseActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="圆角矩形(彩色、一行固定3个):"
+                android:layout_margin="3dp"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:background="#dddddd"/>
+
+            <com.dl7.tag.TagLayout
+                android:id="@+id/tag_layout_1"
+                style="@style/TagLayout.RandomColor"
+                app:tag_layout_fit_num="3"
+                app:tag_layout_horizontal_reverse="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="圆弧形(按压效果):"
+                android:layout_margin="3dp"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:background="#dddddd"/>
+
+            <com.dl7.tag.TagLayout
+                android:id="@+id/tag_layout_2"
+                style="@style/TagLayout.Arc"
+                app:tag_layout_press_feedback="true"
+                app:tag_layout_horizontal_reverse="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="直角矩形(彩色):"
+                android:layout_margin="3dp"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:background="#dddddd"/>
+
+            <com.dl7.tag.TagLayout
+                android:id="@+id/tag_layout_3"
+                style="@style/TagLayout.Rect"
+                app:tag_layout_random_color="true"
+                app:tag_layout_horizontal_reverse="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+    </ScrollView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="#dddddd"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:padding="5dp"
+        android:layout_height="wrap_content">
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_del"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            app:tag_text="删除"
+            app:tag_border_color="@android:color/holo_red_light"
+            app:tag_bg_color="@android:color/white"
+            app:tag_bg_color_check="@android:color/holo_red_light"
+            app:tag_border_color_check="@android:color/holo_red_light"
+            app:tag_text_color_check="@android:color/white"
+            app:tag_icon="@mipmap/ic_delete"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_red_light"/>
+
+        <com.dl7.tag.TagView
+            android:id="@+id/tag_add"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="20dp"
+            app:tag_text="添加"
+            app:tag_border_color="@android:color/holo_green_light"
+            app:tag_bg_color="@android:color/white"
+            app:tag_bg_color_check="@android:color/holo_green_light"
+            app:tag_border_color_check="@android:color/holo_green_light"
+            app:tag_text_color_check="@android:color/white"
+            app:tag_icon="@mipmap/ic_add"
+            app:tag_press_feedback="true"
+            app:tag_text_color="@android:color/holo_green_light"/>
+    </FrameLayout>
+</LinearLayout>

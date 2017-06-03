@@ -24,6 +24,7 @@
         <attr name="tag_layout_vertical_interval" format="dimension"/>
         <attr name="tag_layout_horizontal_interval" format="dimension"/>
         <attr name="tag_layout_fit_num" format="integer"/>
+        <attr name="tag_layout_horizontal_reverse" format="boolean"/>
         <!-- TagView -->
         <attr name="tag_view_bg_color" format="color"/>
         <attr name="tag_view_border_color" format="color"/>
